@@ -1,0 +1,681 @@
+<template>
+  <div class="dict-container">
+    <el-row :gutter="20">
+      <!-- 左侧字典类型列表 -->
+      <el-col :span="6">
+        <el-card shadow="never" class="type-card">
+          <template #header>
+            <div class="card-header">
+              <span>字典类型</span>
+              <el-button type="primary" link @click="openTypeDialog()">
+                <el-icon><Plus /></el-icon>
+              </el-button>
+            </div>
+          </template>
+
+          <div class="type-search">
+            <el-input
+              v-model="typeKeyword"
+              placeholder="搜索类型"
+              prefix-icon="Search"
+              clearable
+              size="small"
+              @input="filterTypes" />
+          </div>
+
+            <el-tree
+              ref="typeTreeRef"
+              :data="typeTreeData"
+              :props="{ label: 'detail', children: 'children' }"
+              :default-expanded-keys="expandedTypeKeys"
+              node-key="id"
+              highlight-current
+              :expand-on-click-node="false"
+              :indent="20"
+              class="tree-line"
+              @node-click="handleTypeSelect">
+            <template #default="{ node, data }">
+              <div class="type-tree-node" :style="{ '--level': node.level }">
+                <el-icon
+                  class="tree-icon"
+                  :class="{ 'is-leaf': data.leaf === 1 }">
+                  <el-icon v-if="data.leaf === 1"><Document /></el-icon>
+                  <el-icon v-else-if="node.expanded"><FolderOpened /></el-icon>
+                  <el-icon v-else><Folder /></el-icon>
+                </el-icon>
+                <span class="tree-label">{{ data.detail }}</span>
+                <el-dropdown
+                  trigger="click"
+                  @command="(cmd: string) => handleTypeAction(cmd, data)">
+                  <el-icon class="type-actions" @click.stop
+                    ><MoreFilled
+                  /></el-icon>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="edit">编辑</el-dropdown-item>
+                      <el-dropdown-item command="delete" divided
+                        >删除</el-dropdown-item
+                      >
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </template>
+          </el-tree>
+
+          <el-empty
+            v-if="typeTreeData.length === 0"
+            description="暂无字典数据" />
+        </el-card>
+      </el-col>
+
+      <!-- 右侧字典数据列表 -->
+      <el-col :span="18">
+        <el-card shadow="never" v-if="selectedType">
+          <template #header>
+            <div class="card-header">
+              <span>{{ selectedType.detail }}管理</span>
+              <div class="header-actions">
+                <el-input
+                  v-model="dataKeyword"
+                  placeholder="搜索编码/名称"
+                  prefix-icon="Search"
+                  clearable
+                  style="width: 200px"
+                  @input="handleDataSearch"
+                  @clear="loadDataList" />
+                <el-button type="primary" @click="openDataDialog()">
+                  <el-icon><Plus /></el-icon>新增
+                </el-button>
+                <el-button @click="openImportDialog">
+                  <el-icon><Upload /></el-icon>导入
+                </el-button>
+                <el-button @click="handleExport">
+                  <el-icon><Download /></el-icon>导出
+                </el-button>
+              </div>
+            </div>
+          </template>
+
+          <el-table
+            :data="dataList"
+            v-loading="dataLoading"
+            style="width: 100%">
+            <el-table-column prop="code" label="编码" width="150" />
+            <el-table-column prop="detail" label="名称" min-width="150" />
+            <el-table-column prop="alias" label="别名" width="120">
+              <template #default="{ row }">
+                {{ row.alias || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="parentCode" label="父级" width="120">
+              <template #default="{ row }">
+                {{ row.parentCode || '-' }}
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="level"
+              label="层级"
+              width="80"
+              align="center">
+              <template #default="{ row }">
+                <el-tag size="small">{{ row.level }}级</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="sort"
+              label="排序"
+              width="80"
+              align="center" />
+            <el-table-column
+              prop="status"
+              label="状态"
+              width="80"
+              align="center">
+              <template #default="{ row }">
+                <el-tag
+                  :type="row.status === 1 ? 'success' : 'info'"
+                  size="small">
+                  {{ row.status === 1 ? '启用' : '禁用' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column
+              prop="leaf"
+              label="叶子"
+              width="80"
+              align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.leaf === 1 ? 'success' : 'warning'" size="small">
+                  {{ row.leaf === 1 ? '是' : '否' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="150" fixed="right">
+              <template #default="{ row }">
+                <el-button type="primary" link @click="openDataDialog(row)"
+                  >编辑</el-button
+                >
+                <el-button type="danger" link @click="handleDelete(row)"
+                  >删除</el-button
+                >
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+
+        <el-card shadow="never" v-else>
+          <el-empty description="请选择字典类型" />
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 字典类型弹窗 -->
+    <DictTypeDialog
+      v-model:visible="typeDialogVisible"
+      :type-data="currentType"
+      @success="loadTypes" />
+
+    <!-- 字典数据弹窗 -->
+    <DictDataDialog
+      v-model:visible="dataDialogVisible"
+      :data="currentData"
+      :kind="selectedType?.kind"
+      :parent-options="parentOptions"
+      :parent-id="currentData ? undefined : selectedType?.id"
+      :parent-code="currentData ? undefined : selectedType?.code"
+      :parent-level="currentData ? undefined : selectedType?.level"
+      @success="handleDataSuccess" />
+
+    <!-- 导入弹窗 -->
+    <ImportDialog
+      v-model:visible="importDialogVisible"
+      :kind="selectedType?.kind"
+      @success="loadDataList" />
+  </div>
+</template>
+
+<script setup lang="ts">
+  import { ref, computed, onMounted, watch } from 'vue'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import {
+    Plus,
+    MoreFilled,
+    Upload,
+    Download,
+    Folder,
+    FolderOpened,
+    Document
+  } from '@element-plus/icons-vue'
+  import {
+    getDictTypes,
+    deleteDictType,
+    getChildrenById,
+    deleteDict,
+    type SysDict
+  } from '@/api/dict'
+  import DictTypeDialog from './components/DictTypeDialog.vue'
+  import DictDataDialog from './components/DictDataDialog.vue'
+  import ImportDialog from './components/ImportDialog.vue'
+
+  const typeKeyword = ref('')
+  const dataKeyword = ref('')
+  const typeList = ref<SysDict[]>([])
+  const typeTreeData = ref<SysDict[]>([])
+  const dataList = ref<SysDict[]>([])
+  const selectedTypeId = ref<number | null>(null)
+  const dataLoading = ref(false)
+  const parentOptions = ref<SysDict[]>([])
+  const expandedTypeKeys = ref<number[]>([])
+
+  // 弹窗状态
+  const typeDialogVisible = ref(false)
+  const dataDialogVisible = ref(false)
+  const importDialogVisible = ref(false)
+  const currentType = ref<SysDict | null>(null)
+  const currentData = ref<SysDict | null>(null)
+
+  const selectedType = computed(() => {
+    if (!selectedTypeId.value) return null
+    return findNodeById(typeTreeData.value, selectedTypeId.value)
+  })
+
+  const handleTypeSelect = (data: SysDict) => {
+    selectedTypeId.value = data.id
+    dataKeyword.value = ''
+    
+    // 添加到展开列表
+    if (!expandedTypeKeys.value.includes(data.id)) {
+      expandedTypeKeys.value = [...expandedTypeKeys.value, data.id]
+    }
+    
+    loadDataList()
+    loadParentOptions()
+  }
+
+  const findNodeById = (list: SysDict[], id: number): SysDict | null => {
+    for (const item of list) {
+      if (item.id === id) return item
+      if (item.children && item.children.length > 0) {
+        const found = findNodeById(item.children, id)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  const filterTree = (list: SysDict[], keyword: string): SysDict[] => {
+    return list.filter(item => {
+      const match =
+        item.detail?.includes(keyword) || item.code?.includes(keyword)
+      if (item.children && item.children.length > 0) {
+        item.children = filterTree(item.children, keyword)
+      }
+      return match || (item.children && item.children.length > 0)
+    })
+  }
+
+  const loadTypes = async () => {
+    try {
+      // 获取所有字典数据来构建树
+      const allTypes = await getDictTypes()
+      console.log('All types:', allTypes)
+      typeList.value = allTypes
+      typeTreeData.value = buildTypeTree(allTypes)
+      console.log('Tree data:', typeTreeData.value)
+      
+      if (typeTreeData.value.length > 0 && !selectedTypeId.value) {
+        selectedTypeId.value = typeTreeData.value[0].id
+        console.log('Selected type id:', selectedTypeId.value)
+        loadDataList()
+      }
+    } catch (error) {
+      console.error('获取字典类型列表失败', error)
+    }
+  }
+
+  const buildTypeTree = (list: SysDict[]): SysDict[] => {
+    const map = new Map<number, SysDict>()
+    const roots: SysDict[] = []
+
+    list.forEach(item => {
+      map.set(item.id, { ...item, children: [] })
+    })
+
+    list.forEach(item => {
+      const node = map.get(item.id)!
+      if (item.parentId === 0 || !item.parentId) {
+        roots.push(node)
+      } else {
+        const parent = map.get(item.parentId)
+        if (parent) {
+          parent.children = parent.children || []
+          parent.children.push(node)
+        }
+      }
+    })
+
+    return roots
+  }
+
+  const loadDataList = async () => {
+    if (!selectedType.value) return
+
+    dataLoading.value = true
+    try {
+      // 使用节点的 id 作为 parentId 来查询该节点的直接子节点
+      const parentId = selectedType.value.id
+      console.log('Loading children for:', selectedType.value.kind, parentId)
+      const result = await getChildrenById(selectedType.value.kind, parentId)
+      console.log('Children data:', result)
+      dataList.value = result
+    } catch (error) {
+      console.error('获取字典数据失败', error)
+    } finally {
+      dataLoading.value = false
+    }
+  }
+
+  const loadParentOptions = async () => {
+    if (!selectedType.value) return
+    try {
+      const { getParentOptions } = await import('@/api/dict')
+      parentOptions.value = await getParentOptions(selectedType.value.kind)
+    } catch (error) {
+      console.error('获取父级选项失败', error)
+    }
+  }
+
+  const filterTypes = () => {
+    if (!typeKeyword.value) {
+      typeTreeData.value = buildTypeTree(typeList.value)
+    } else {
+      typeTreeData.value = filterTree(typeList.value, typeKeyword.value)
+    }
+  }
+
+  const handleDataSearch = () => {
+    if (!dataKeyword.value) {
+      loadDataList()
+      return
+    }
+
+    const filter = (list: SysDict[]): SysDict[] => {
+      return list.filter(item => {
+        const match =
+          item.code?.includes(dataKeyword.value) ||
+          item.detail?.includes(dataKeyword.value)
+        if (item.children) {
+          item.children = filter(item.children)
+        }
+        return match || (item.children && item.children.length > 0)
+      })
+    }
+
+    dataList.value = filter(dataList.value)
+  }
+
+  const handleTypeAction = (command: string, type: SysDict) => {
+    if (command === 'edit') {
+      currentType.value = type
+      typeDialogVisible.value = true
+    } else if (command === 'delete') {
+      handleDeleteType(type)
+    }
+  }
+
+  const openTypeDialog = (type?: SysDict) => {
+    currentType.value = type || null
+    typeDialogVisible.value = true
+  }
+
+  const openDataDialog = (data?: SysDict) => {
+    currentData.value = data || null
+    console.log('Open dict dialog, data:', data, 'selectedType:', selectedType.value)
+    dataDialogVisible.value = true
+  }
+
+  const handleDataSuccess = () => {
+    if (selectedType.value) {
+      refreshCurrentTypeNode()
+      loadDataList()
+    }
+  }
+
+  const refreshCurrentTypeNode = async () => {
+    if (!selectedTypeId.value) return
+    try {
+      const kind = selectedType.value?.kind
+      if (!kind) return
+
+      const result = await getChildrenById(kind, selectedTypeId.value)
+      updateNodeChildren(typeTreeData.value, selectedTypeId.value, result)
+    } catch (error) {
+      console.error('刷新当前节点失败', error)
+    }
+  }
+
+  const updateNodeChildren = (list: SysDict[], id: number, children: SysDict[]) => {
+    for (const item of list) {
+      if (item.id === id) {
+        item.children = children
+        return true
+      }
+      if (item.children && item.children.length > 0) {
+        if (updateNodeChildren(item.children, id, children)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
+  const openImportDialog = () => {
+    if (!selectedType.value) {
+      ElMessage.warning('请先选择字典类型')
+      return
+    }
+    importDialogVisible.value = true
+  }
+
+  const handleDeleteType = async (type: SysDict) => {
+    try {
+      await ElMessageBox.confirm(
+        `确定要删除字典类型"${type.detail}"吗？将级联删除该类型下所有数据。`,
+        '警告',
+        { type: 'warning' }
+      )
+      await deleteDictType(type.id)
+      ElMessage.success('删除成功')
+      if (selectedTypeId.value === type.id) {
+        selectedTypeId.value = null
+      }
+      loadTypes()
+    } catch (error: any) {
+      if (error !== 'cancel') {
+        ElMessage.error('删除失败')
+      }
+    }
+  }
+
+  const handleDelete = async (row: SysDict) => {
+    try {
+      await ElMessageBox.confirm(
+        `确定要删除字典"${row.detail}"吗？将级联删除所有子节点。`,
+        '警告',
+        { type: 'warning' }
+      )
+      await deleteDict(row.id)
+      ElMessage.success('删除成功')
+      if (selectedType.value) {
+        refreshCurrentTypeNode()
+      }
+      loadDataList()
+    } catch (error: any) {
+      if (error !== 'cancel') {
+        ElMessage.error('删除失败')
+      }
+    }
+  }
+
+  const handleExport = async () => {
+    if (!selectedType.value) {
+      ElMessage.warning('请先选择字典类型')
+      return
+    }
+
+    try {
+      const { exportDict } = await import('@/api/dict')
+      const data = await exportDict(
+        selectedType.value.kind,
+        dataKeyword.value || undefined
+      )
+
+      const headerNames = ['字典类型', '编码', '名称', '父级', '层级', '排序']
+      const csvContent = [
+        headerNames.join(','),
+        ...data.map((row: any) =>
+          [
+            row.kind,
+            row.code,
+            row.detail,
+            row.parentCode || '',
+            row.level,
+            row.sort
+          ].join(',')
+        )
+      ].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = `${selectedType.value.detail}_字典数据.csv`
+      link.click()
+
+      ElMessage.success('导出成功')
+    } catch (error) {
+      ElMessage.error('导出失败')
+    }
+  }
+
+  watch(selectedType, () => {
+    loadParentOptions()
+  })
+
+  onMounted(() => {
+    loadTypes()
+  })
+</script>
+
+<style lang="scss" scoped>
+  .dict-container {
+    padding: 20px;
+  }
+
+  .type-card {
+    height: calc(100vh - 140px);
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .type-search {
+      margin-bottom: 12px;
+    }
+
+    :deep(.tree-line) {
+      border-right: none;
+
+      .el-tree-node {
+        position: relative;
+        padding-left: 3px;
+
+        .el-tree-node__content {
+          height: 32px;
+          position: relative;
+          padding-left: 28px !important;
+        }
+
+        .el-tree-node__expand-icon {
+          position: absolute;
+          left: 4px;
+          top: 50%;
+          transform: translateY(-50%);
+          padding: 10px 10px 10px;
+          color: #909399;
+
+          &.expanded {
+            color: #409eff;
+          }
+
+          &.is-leaf {
+            display: none;
+          }
+        }
+
+        .el-tree-node__children {
+          padding-left: 36px;
+        }
+
+        :last-child::before {
+          height: 38px;
+        }
+
+        &::before {
+          position: absolute;
+          right: auto;
+          left: -4px;
+          content: "";
+          border-width: 1px;
+        }
+
+        &::after {
+          position: absolute;
+          right: auto;
+          left: -4px;
+          content: "";
+          border-width: 1px;
+        }
+
+        &::before {
+          top: 0px;
+          bottom: 0;
+          width: 1px;
+          height: 100%;
+          border-left: 1px dashed #52627c;
+        }
+
+        &::after {
+          top: 16px;
+          width: 28px;
+          height: 20px;
+          border-top: 1px dashed #52627c;
+        }
+
+        &:first-child::before {
+          top: 0;
+        }
+      }
+
+      > .el-tree-node:first-child::before {
+        top: 18px;
+      }
+    }
+
+    .type-tree-node {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      font-size: 14px;
+      position: relative;
+
+      .tree-icon {
+        margin-right: 6px;
+        color: #409eff;
+        font-size: 16px;
+
+        &.is-leaf {
+          color: #c0c4cc;
+        }
+      }
+
+      .tree-label {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        position: relative;
+        z-index: 1;
+      }
+
+      .type-actions {
+        visibility: hidden;
+        margin-left: 8px;
+        color: #909399;
+        position: relative;
+        z-index: 1;
+
+        &:hover {
+          color: #409eff;
+        }
+      }
+
+      &:hover .type-actions {
+        visibility: visible;
+      }
+    }
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+</style>

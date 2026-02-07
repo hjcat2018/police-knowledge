@@ -1,0 +1,128 @@
+-- ===============================
+-- 字典表结构优化脚本
+-- 文件: 002_sys_dict_optimize.sql
+-- 说明: 创建优化后的字典表并迁移数据
+-- 日期: 2026-01-31
+-- ===============================
+
+-- ----------------------------
+-- 1. 创建优化后的新表
+-- ----------------------------
+CREATE TABLE `sys_dict` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  
+  -- 核心字段
+  `kind` VARCHAR(50) NOT NULL COMMENT '字典类型（如：origin_scope, origin_department, kb_category）',
+  `code` VARCHAR(64) NOT NULL COMMENT '节点编码（同一type下唯一）',
+  `detail` VARCHAR(160) NOT NULL COMMENT '名称',
+  `alias` VARCHAR(160) DEFAULT NULL COMMENT '别名/英文名',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT '详细描述',
+  
+  -- 层级结构
+  `parent_id` BIGINT(20) DEFAULT 0 COMMENT '父节点ID（0表示一级节点）',
+  `parent_code` VARCHAR(64) DEFAULT NULL COMMENT '父节点编码',
+  `level` TINYINT(2) NOT NULL DEFAULT 1 COMMENT '层级（1=一级，2=二级...）',
+  `leaf` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否叶子节点：0-否，1-是',
+  `sort` INT(11) NOT NULL DEFAULT 0 COMMENT '排序（同级内排序）',
+  
+  -- 扩展信息
+  `icon` VARCHAR(100) DEFAULT NULL COMMENT '图标（如：element-plus图标名）',
+  `color` VARCHAR(20) DEFAULT NULL COMMENT '颜色（如：#1890ff）',
+  `ext_config` JSON DEFAULT NULL COMMENT '扩展配置（JSON格式）',
+  
+  -- 状态管理
+  `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '状态：0-停用，1-启用',
+  `is_system` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否系统内置：0-否，1-是',
+  
+  -- 审计字段
+  `created_by` BIGINT(20) DEFAULT NULL COMMENT '创建人ID',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_by` BIGINT(20) DEFAULT NULL COMMENT '更新人ID',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  
+  -- 备注
+  `remark` VARCHAR(255) DEFAULT NULL COMMENT '备注',
+  `deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '删除标记：0-未删除，1-已删除',
+  
+  PRIMARY KEY (`id`),
+  
+  -- 唯一约束
+  UNIQUE KEY `uk_kind_code` (`kind`, `code`),
+  
+  -- 索引优化
+  KEY `idx_kind` (`kind`),
+  KEY `idx_parent` (`parent_id`, `kind`, `sort`),
+  KEY `idx_kind_level` (`kind`, `level`, `sort`),
+  KEY `idx_status` (`status`),
+  KEY `idx_deleted` (`deleted`),
+  KEY `idx_created_at` (`created_at`)
+  
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+COMMENT='系统字典表（优化版）';
+
+-- ----------------------------
+-- 2. 数据迁移（字段映射）
+-- ----------------------------
+INSERT INTO sys_dict 
+(`id`, `kind`, `code`, `detail`, `alias`, `description`,
+ `parent_id`, `parent_code`, `level`, `leaf`, `sort`,
+ `icon`, `color`, `ext_config`, `status`, `is_system`,
+ `created_by`, `created_at`, `updated_by`, `updated_at`,
+ `remark`, `deleted`)
+SELECT 
+  `id`,
+  `kind`,
+  `code`,
+  `detail`,
+  `alias`,
+  NULL AS description,
+  IFNULL(`parentId`, 0) AS parent_id,
+  `superCode` AS parent_code,
+  IFNULL(`level`, 1) AS level,
+  IFNULL(`leaf`, 1) AS leaf,
+  IFNULL(`sort`, 0) AS sort,
+  NULL AS icon,
+  NULL AS color,
+  NULL AS ext_config,
+  IFNULL(`status`, 1) AS status,
+  0 AS is_system,
+  NULL AS created_by,
+  IFNULL(`createDate`, NOW()) AS created_at,
+  NULL AS updated_by,
+  IFNULL(`updateDate`, NOW()) AS updated_at,
+  `remark`,
+  0 AS deleted
+FROM sys_dict_backup;
+
+-- ----------------------------
+-- 3. 验证数据迁移
+-- ----------------------------
+SELECT 
+  '原表记录数' AS 统计项,
+  COUNT(*) AS 数量
+FROM sys_dict_backup
+UNION ALL
+SELECT 
+  '新表记录数',
+  COUNT(*)
+FROM sys_dict
+UNION ALL
+SELECT 
+  '按类型统计',
+  kind AS 类型,
+  COUNT(*) AS 数量
+FROM sys_dict
+GROUP BY kind;
+
+-- ----------------------------
+-- 4. 对比验证
+-- ----------------------------
+SELECT 
+  '验证结果' AS 结果,
+  CASE 
+    WHEN (SELECT COUNT(*) FROM sys_dict) = (SELECT COUNT(*) FROM sys_dict_backup) 
+    THEN '数据迁移成功，记录数一致'
+    ELSE '数据迁移异常，请检查'
+  END AS 说明;
+
+SELECT '字典表结构优化完成' AS result;

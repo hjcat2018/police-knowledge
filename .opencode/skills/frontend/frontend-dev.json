@@ -1,0 +1,1143 @@
+{
+  "name": "frontend-dev",
+  "description": "公安专网知识库系统前端开发规范和流程指南 - 包含Vue 3 + TypeScript + Element Plus + Pinia完整开发规范，整合vue.ai最佳实践和ui-ux-pro-max设计智能",
+  "version": "1.0.0",
+  "author": "Development Team",
+  "lastUpdated": "2026-01-31",
+  "tags": ["vue3", "typescript", "element-plus", "pinia", "vite", "frontend"],
+  "context": {
+    "project": {
+      "name": "Police Knowledge Base Frontend",
+      "fullName": "公安专网知识库系统前端",
+      "type": "Vue 3 SPA Application",
+      "language": "TypeScript 5.7.3",
+      "framework": "Vue 3.5.13 + Vite 6.0.6",
+      "description": "面向基层民警的智能知识库管理平台前端，采用Vue 3 Composition API和现代化工具链"
+    },
+    "technologyStack": {
+      "core": {
+        "vue": {
+          "version": "3.5.13",
+          "description": "前端框架",
+          "docs": "https://cn.vuejs.org/",
+          "compositionApi": "https://cn.vuejs.org/guide/extras/composition-api-faq.html"
+        },
+        "typescript": {
+          "version": "5.7.3",
+          "description": "类型安全",
+          "docs": "https://www.typescriptlang.org/"
+        },
+        "vite": {
+          "version": "6.0.6",
+          "description": "构建工具",
+          "docs": "https://cn.vitejs.dev/"
+        }
+      },
+      "ui": {
+        "elementPlus": {
+          "version": "2.9.3",
+          "description": "UI组件库",
+          "docs": "https://element-plus.org/zh-CN/"
+        },
+        "sass": {
+          "version": "1.85.1",
+          "description": "CSS预处理器",
+          "docs": "https://sass-lang.com/"
+        }
+      },
+      "state": {
+        "pinia": {
+          "version": "3.0.2",
+          "description": "状态管理",
+          "docs": "https://pinia.vuejs.org/zh/"
+        },
+        "vueRouter": {
+          "version": "4.5.0",
+          "description": "路由管理",
+          "docs": "https://router.vuejs.org/zh/"
+        }
+      },
+      "network": {
+        "axios": {
+          "version": "1.8.2",
+          "description": "HTTP客户端",
+          "docs": "https://axios-http.cn/"
+        },
+        "axiosRetry": {
+          "version": "4.5.0",
+          "description": "请求重试"
+        }
+      },
+      "utils": {
+        "dayjs": {
+          "version": "1.11.13",
+          "description": "日期处理"
+        },
+        "lodashEs": {
+          "version": "4.17.21",
+          "description": "工具函数"
+        },
+        "markdownIt": {
+          "version": "14.1.0",
+          "description": "Markdown解析"
+        },
+        "marked": {
+          "version": "17.0.1",
+          "description": "Markdown渲染"
+        },
+        "highlightJs": {
+          "version": "11.11.1",
+          "description": "代码高亮"
+        },
+        "dompurify": {
+          "version": "3.3.1",
+          "description": "XSS防护"
+        },
+        "nprogress": {
+          "version": "0.2.0",
+          "description": "进度条"
+        }
+      },
+      "devtools": {
+        "unpluginAutoImport": {
+          "version": "19.0.0",
+          "description": "自动导入Vue API"
+        },
+        "unpluginVueComponents": {
+          "version": "28.0.0",
+          "description": "自动注册组件"
+        },
+        "eslint": {
+          "version": "9.21.0",
+          "description": "代码检查"
+        },
+        "prettier": {
+          "version": "3.5.2",
+          "description": "代码格式化"
+        },
+        "vueTsc": {
+          "version": "2.2.0",
+          "description": "Vue类型检查"
+        }
+      }
+    },
+    "projectStructure": {
+      "root": "frontend/",
+      "sourceCode": "src/",
+      "public": "public/",
+      "config": {
+        "vite": "vite.config.ts",
+        "typescript": "tsconfig.json",
+        "eslint": "eslint.config.js",
+        "prettier": ".prettierrc"
+      },
+      "modules": {
+        "api": {
+          "path": "src/api/",
+          "files": ["auth/index.ts", "user/index.ts", "kb/index.ts", "doc/index.ts", "search.ts", "conversation.ts"],
+          "description": "API接口模块"
+        },
+        "assets": {
+          "path": "src/assets/",
+          "subdirs": ["images/", "styles/"],
+          "description": "静态资源"
+        },
+        "components": {
+          "path": "src/components/",
+          "organization": "按需自动注册",
+          "description": "公共组件"
+        },
+        "layout": {
+          "path": "src/layout/",
+          "files": ["index.vue"],
+          "description": "布局组件"
+        },
+        "router": {
+          "path": "src/router/",
+          "files": ["index.ts"],
+          "description": "路由配置"
+        },
+        "store": {
+          "path": "src/store/",
+          "files": ["index.ts"],
+          "subdirs": ["modules/"],
+          "description": "状态管理"
+        },
+        "styles": {
+          "path": "src/styles/",
+          "files": ["index.scss", "variables.scss"],
+          "description": "全局样式"
+        },
+        "types": {
+          "path": "src/types/",
+          "files": ["api.ts"],
+          "description": "TypeScript类型"
+        },
+        "utils": {
+          "path": "src/utils/",
+          "files": ["request.ts", "markdown.ts"],
+          "description": "工具函数"
+        },
+        "views": {
+          "path": "src/views/",
+          "modules": ["404/", "chat/", "dashboard/", "doc/", "kb/", "login/", "search/", "system/", "vector/"],
+          "description": "页面组件"
+        }
+      }
+    }
+  },
+  "vueBestPractices": {
+    "corePrinciples": {
+      "statePredictability": "保持状态可预测：单一数据源，派生其他状态",
+      "explicitDataFlow": "明确数据流：Props向下，Events向上",
+      "focusedComponents": "偏好小而专注的组件：易于测试、复用和维护",
+      "avoidUnnecessaryRenders": "避免不必要的重渲染：合理使用computed和watch",
+      "readability": "可读性优先：编写清晰、自文档化的代码"
+    },
+    "defaults": {
+      "compositionAPI": "优先使用Composition API而非Options API",
+      "scriptSetup": "使用<script setup lang=\"ts\">语法",
+      "typescript": "使用TypeScript进行类型定义"
+    },
+    "reactivity": {
+      "ref": "用于基本类型和对象类型",
+      "reactive": "用于复杂对象（注意解构会丢失响应式）",
+      "computed": "用于计算属性，自动缓存",
+      "watch": "用于监听数据变化",
+      "watchEffect": "用于立即执行的响应式副作用",
+      "readonly": "用于创建只读响应式对象"
+    },
+    "componentBestPractices": {
+      "focusedComponents": {
+        "description": "保持组件职责单一",
+        "splitWhen": "组件有多个明确职责时拆分",
+        "approach": [
+          "将状态/副作用移入composables (useXxx)",
+          "将UI区块移入子组件 (props in, events out)",
+          "优先使用小组件 + composables而非大型组件"
+        ]
+      },
+      "dataFlow": {
+        "props": {
+          "description": "父组件向子组件传递数据",
+          "rules": ["只读不可修改", "类型定义完整", "必填标记清晰"]
+        },
+        "emits": {
+          "description": "子组件向父组件发送事件",
+          "rules": ["使用emits选项", "参数类型定义", "命名使用kebab-case"]
+        },
+        "vModel": {
+          "description": "双向绑定",
+          "rules": ["推荐用于表单组件", "配合defineModel使用"]
+        },
+        "provideInject": {
+          "description": "跨组件数据共享",
+          "rules": ["用于深层组件通信", "避免滥用", "提供类型定义"]
+        }
+      },
+      "sfcStructure": {
+        "order": ["<script>", "<template>", "<style>"],
+        "script": "包含逻辑、类型导入、组件导入",
+        "template": "包含模板结构",
+        "style": "包含样式定义，支持scoped"
+      }
+    }
+  },
+  "uiuxDesign": {
+    "whenToApply": "当进行UI设计、新组件开发、页面构建、代码审查时参考此规范",
+    "ruleCategories": {
+      "accessibility": {
+        "priority": "CRITICAL",
+        "rules": [
+          "color-contrast - 正常文本最低4.5:1对比度",
+          "focus-states - 可交互元素有可见焦点环",
+          "alt-text - 有意义图片有描述性alt文本",
+          "aria-labels - 图标按钮添加aria-label",
+          "keyboard-nav - Tab顺序与视觉顺序一致",
+          "form-labels - 表单使用label with for属性"
+        ]
+      },
+      "touchInteraction": {
+        "priority": "CRITICAL",
+        "rules": [
+          "touch-target-size - 最小44x44px触摸目标",
+          "hover-vs-tap - 主要交互使用点击/触摸",
+          "loading-buttons - 异步操作时禁用按钮",
+          "error-feedback - 错误提示在问题附近显示",
+          "cursor-pointer - 可点击元素添加cursor-pointer"
+        ]
+      },
+      "performance": {
+        "priority": "HIGH",
+        "rules": [
+          "image-optimization - 使用WebP、srcset、懒加载",
+          "reduced-motion - 检测prefers-reduced-motion",
+          "content-jumping - 为异步内容预留空间"
+        ]
+      },
+      "layoutResponsive": {
+        "priority": "HIGH",
+        "rules": [
+          "viewport-meta - width=device-width initial-scale=1",
+          "readable-font-size - 移动端正文字体最小16px",
+          "horizontal-scroll - 确保内容适配视口宽度",
+          "z-index-management - 定义z-index层级（10, 20, 30, 50）"
+        ]
+      },
+      "typographyColor": {
+        "priority": "MEDIUM",
+        "rules": [
+          "line-height - 正文使用1.5-1.75行高",
+          "line-length - 每行限制65-75个字符",
+          "font-pairing - 标题/正文字体风格匹配"
+        ]
+      },
+      "animation": {
+        "priority": "MEDIUM",
+        "rules": [
+          "duration-timing - 微交互使用150-300ms",
+          "transform-performance - 使用transform/opacity而非width/height",
+          "loading-states - 使用骨架屏或加载动画"
+        ]
+      },
+      "styleSelection": {
+        "priority": "MEDIUM",
+        "rules": [
+          "style-match - 风格与产品类型匹配",
+          "consistency - 所有页面使用相同风格",
+          "no-emoji-icons - 使用SVG图标而非emoji"
+        ]
+      },
+      "chartsData": {
+        "priority": "LOW",
+        "rules": [
+          "chart-type - 图表类型与数据类型匹配",
+          "color-guidance - 使用可访问配色",
+          "data-table - 提供表格替代方案"
+        ]
+      }
+    },
+    "designStyles": {
+      "glassmorphism": {
+        "features": ["半透明背景", "模糊效果", "微妙边框"],
+        "colors": ["bg-white/80", "backdrop-blur"]
+      },
+      "minimalism": {
+        "features": ["大量留白", "简单线条", "有限配色"],
+        "colors": ["#FFFFFF", "#F5F5F5", "#1A1A1A"]
+      },
+      "darkMode": {
+        "features": ["深色背景", "浅色文字", "高对比度"],
+        "colors": ["#1A1A2E", "#16213E", "#0F3460"]
+      }
+    },
+    "colorPalettes": {
+      "primary": {
+        "blue": ["#1890ff", "#096dd9", "#0050b3"],
+        "green": ["#52c41a", "#389e0d", "#237804"],
+        "orange": ["#faad14", "#d48806", "#ad6800"],
+        "pink": ["#eb2f96", "#c41d7f", "#9e1068"]
+      },
+      "semantic": {
+        "success": "#52c41a",
+        "warning": "#faad14",
+        "danger": "#f5222d",
+        "info": "#1890ff"
+      }
+    },
+    "typography": {
+      "chinese": {
+        "primary": ["PingFang SC", "Microsoft YaHei", "sans-serif"],
+        "monospace": ["Fira Code", "Consolas", "monospace"]
+      },
+      "english": {
+        "primary": ["Inter", "Roboto", "sans-serif"],
+        "heading": ["Space Grotesk", "Inter"]
+      },
+      "sizes": {
+        "h1": "32px",
+        "h2": "28px",
+        "h3": "24px",
+        "h4": "20px",
+        "body": "16px",
+        "small": "14px",
+        "tiny": "12px"
+      }
+    }
+  },
+  "codeStandards": {
+    "naming": {
+      "variables": {
+        "rule": "camelCase",
+        "examples": ["userName", "documentList", "pageSize"],
+        "constants": "UPPER_SNAKE_CASE (如: MAX_PAGE_SIZE)"
+      },
+      "functions": {
+        "rule": "camelCase",
+        "examples": ["getUserInfo", "handleLogin", "formatDate"]
+      },
+      "components": {
+        "rule": "PascalCase",
+        "examples": ["UserCard", "DocDialog", "KbList"],
+        "files": "*.vue"
+      },
+      "files": {
+        "vue": "PascalCase (如: UserCard.vue)",
+        "ts": "camelCase (如: userService.ts)",
+        "scss": "kebab-case (如: user-list.scss)"
+      },
+      "interfaces": {
+        "rule": "PascalCase + 前缀I",
+        "examples": ["IUserInfo", "IDocument", "IApiResponse"]
+      },
+      "types": {
+        "rule": "PascalCase",
+        "examples": ["UserStatus", "DocumentType"]
+      }
+    },
+    "typescript": {
+      "strictMode": true,
+      "noImplicitAny": "禁止隐式any类型",
+      "noImplicitReturns": "所有路径必须有返回值",
+      "noUnusedLocals": "禁止未使用的局部变量",
+      "noUnusedParameters": "禁止未使用的函数参数"
+    },
+    "javaDoc": {
+      "classDocumentation": {
+        "required": true,
+        "template": "/**\n * 类功能描述\n * @author 作者名\n * @date 日期时间\n */"
+      },
+      "methodDocumentation": {
+        "required": true,
+        "template": "/**\n * 方法功能描述\n * @param 参数名 参数说明\n * @returns 返回值说明\n */"
+      }
+    },
+    "formatting": {
+      "indentation": 2,
+      "semicolons": true,
+      "quotes": "single",
+      "printWidth": 100
+    }
+  },
+  "componentPatterns": {
+    "vueComponent": {
+      "template": "<template>\n  <div class=\"component-name\">\n    <!-- 模板内容 -->\n  </div>\n</template>\n\n<script setup lang=\"ts\">\n// 导入\n// 类型定义\n// Props/Emits\n// 响应式状态\n// 计算属性\n// 监听器\n// 生命周期\n// 方法\n</script>\n\n<style lang=\"scss\" scoped>\n.component-name {\n  /* 样式 */\n}\n</style>",
+      "props": {
+        "definition": "使用defineProps<{...}>",
+        "validation": "使用PropType进行类型验证",
+        "required": "必填属性使用required标记",
+        "defaults": "使用withDefaults设置默认值"
+      },
+      "emits": {
+        "definition": "使用defineEmits<{...}>",
+        "typing": "完整的事件参数类型定义"
+      }
+    },
+    "composable": {
+      "template": "// useXxx.ts\nexport function useXxx(params: XxxParams) {\n  // 响应式状态\n  const state = ref(...)\n  \n  // 方法\n  function doSomething() {\n    // 逻辑\n  }\n  \n  // 生命周期\n  onMounted(() => {\n    // 初始化\n  })\n  \n  return {\n    state,\n    doSomething\n  }\n}",
+      "rules": ["以useXxx命名", "返回响应式对象", "处理清理逻辑"]
+    },
+    "dialogComponent": {
+      "template": "<el-dialog v-model=\"visible\" title=\"标题\">\n  <slot />\n  <template #footer>\n    <el-button @click=\"visible = false\">取消</el-button>\n    <el-button type=\"primary\" @click=\"handleConfirm\">确定</el-button>\n  </template>\n</el-dialog>",
+      "props": ["modelValue (v-model)", "data (数据)"],
+      "emits": ["update:modelValue", "confirm"]
+    }
+  },
+  "stateManagement": {
+    "pinia": {
+      "storeDefinition": "使用defineStore('storeName', () => {...})语法",
+      "setupStores": "推荐使用setup语法糖风格"
+    },
+    "modules": {
+      "user": {
+        "state": ["token", "userInfo", "roles", "permissions"],
+        "actions": ["loginAction", "logoutAction", "getUserInfoAction", "changePasswordAction"],
+        "persisted": ["token", "userInfo"]
+      },
+      "chat": {
+        "state": ["conversations", "currentConversation", "messages"],
+        "actions": ["createConversation", "sendMessage", "loadMessages"]
+      },
+      "permission": {
+        "state": ["routes", "addRoutes"],
+        "actions": ["generateRoutes"]
+      }
+    },
+    "persistence": {
+      "plugin": "pinia-plugin-persistedstate",
+      "storage": "localStorage",
+      "paths": "在store中配置persistPaths"
+    },
+    "getters": {
+      "usage": "使用computed创建派生状态",
+      "example": "const userName = computed(() => userInfo.value?.realName || '')"
+    }
+  },
+  "apiDesign": {
+    "axios": {
+      "baseURL": "import.meta.env.VITE_API_BASE_URL || '/api'",
+      "timeout": 30000,
+      "headers": { "Content-Type": "application/json;charset=UTF-8" }
+    },
+    "requestInterceptors": {
+      "tokenInjection": "从Pinia store获取token并注入Authorization头",
+      "config": "config.headers['Authorization'] = `Bearer ${userStore.token}`"
+    },
+    "responseInterceptors": {
+      "successHandler": "提取data数据，code=200时返回",
+      "errorHandler": [
+        "401/Token过期 - 清除状态，跳转登录",
+        "403 - 提示无权限",
+        "404 - 提示资源不存在",
+        "500+ - 提示服务器错误"
+      ],
+      "retry": "请求重试机制（最多3次，指数退避）"
+    },
+    "retry": {
+      "shouldRetry": "status >= 500 || status === 408 || status === 429",
+      "delay": "Math.pow(2, retryCount) * 1000"
+    },
+    "cancelableRequest": {
+      "implementation": "使用AbortController",
+      "api": "createCancelableRequest(config)"
+    },
+    "caching": {
+      "api": "requestWithCache(key, config, cacheTime)",
+      "storage": "localStorage",
+      "defaultTime": "5分钟"
+    }
+  },
+  "routingAuth": {
+    "routerSetup": {
+      "history": "createWebHistory()",
+      "routes": "constantRoutes + asyncRoutes"
+    },
+    "routes": {
+      "constant": ["Login", "Layout", "Dashboard", "NotFound"],
+      "async": ["KbList", "DocList", "Search", "VectorStats", "Chat", "User"]
+    },
+    "navigationGuards": {
+      "beforeEach": [
+        "设置页面标题",
+        "检查登录状态",
+        "未登录跳转登录页（携带redirect参数）"
+      ]
+    },
+    "lazyLoading": {
+      "syntax": "() => import('@/views/xxx/index.vue')",
+      "preload": "/* webpackPreload: true */"
+    },
+    "meta": {
+      "title": "页面标题",
+      "icon": "Element Plus图标名",
+      "hidden": "是否隐藏",
+      "roles": "允许访问的角色"
+    }
+  },
+  "uiComponents": {
+    "elementPlus": {
+      "autoImport": "使用unplugin-vue-components自动注册",
+      "icons": "全局注册所有图标组件",
+      "locale": "使用中文(zh-cn)"
+    },
+    "commonPatterns": {
+      "tables": {
+        "features": ["分页", "排序", "筛选", "列宽调整"],
+        "events": ["selection-change", "current-change"],
+        "pagination": "使用el-pagination组件"
+      },
+      "forms": {
+        "rules": "使用FormRules类型定义",
+        "validation": "使用formRef.validate()",
+        "reset": "使用formRef.resetFields()"
+      },
+      "dialogs": {
+        "vModel": "使用v-model绑定visible",
+        "destroyOnClose": "关闭时销毁子组件",
+        "appendToBody": "对话框脱离父元素"
+      },
+      "messages": {
+        "success": "ElMessage.success()",
+        "warning": "ElMessage.warning()",
+        "error": "ElMessage.error()",
+        "info": "ElMessage.info()"
+      },
+      "notifications": {
+        "success": "ElNotification.success()",
+        "error": "ElNotification.error()"
+      }
+    }
+  },
+  "formValidation": {
+    "rules": {
+      "required": "{ required: true, message: '必填', trigger: 'blur' }",
+      "length": "{ min: 2, max: 50, message: '长度2-50', trigger: 'blur' }",
+      "email": "{ type: 'email', message: '邮箱格式错误', trigger: 'blur' }",
+      "phone": "{ pattern: /^1[3-9]\\d{9}$/, message: '手机号格式错误', trigger: 'blur' }",
+      "custom": "{ validator: customValidator, trigger: 'blur' }"
+    },
+    "customValidator": {
+      "template": "const validateXxx = (rule: any, value: any, callback: any) => {\n  if (condition) {\n    callback(new Error('错误信息'))\n  } else {\n    callback()\n  }\n}",
+      "usage": "添加到rules中"
+    }
+  },
+  "performance": {
+    "routing": {
+      "lazyLoading": "所有页面组件使用动态导入",
+      "preload": "关键路由使用webpackPreload"
+    },
+    "components": {
+      "defineAsyncComponent": "大型组件异步加载",
+      "keepAlive": "缓存常用组件"
+    },
+    "images": {
+      "lazyLoad": "使用loading=\"lazy\"",
+      "webp": "优先使用WebP格式"
+    },
+    "caching": {
+      "apiCache": "使用requestWithCache",
+      "computation": "使用computed缓存"
+    },
+    "bundling": {
+      "vendor": "element-plus单独打包",
+      "chunking": "按路由拆分代码"
+    }
+  },
+  "security": {
+    "xssPrevention": {
+      "dompurify": "对HTML内容进行净化",
+      "usage": "DOMPurify.sanitize(htmlContent)",
+      "avoid": "不要使用v-html绑定不可信内容"
+    },
+    "tokenManagement": {
+      "storage": "localStorage",
+      "sensitive": "不在控制台打印token"
+    },
+    "apiSecurity": {
+      "authorization": "Authorization请求头携带token",
+      "errorHandling": "不暴露敏感错误信息"
+    }
+  },
+  "markdownRendering": {
+    "libraries": {
+      "parser": "marked或markdown-it",
+      "highlighter": "highlight.js",
+      "sanitizer": "dompurify"
+    },
+    "security": {
+      "sanitize": "解析后必须经过DOMPurify净化",
+      "config": "禁止危险HTML标签和属性"
+    },
+    "styling": {
+      "github": "使用github-markdown-css",
+      "highlight": "highlight.js主题样式"
+    }
+  },
+  "sseStreaming": {
+    "connection": {
+      "setup": "使用EventSource建立连接",
+      "url": "/api/v1/chat/stream/{conversationId}",
+      "params": ["conversationId", "question", "kbId", "topK"]
+    },
+    "messageHandling": {
+      "chunk": "接收流式数据块",
+      "complete": "连接关闭时完成",
+      "error": "错误处理和重连"
+    },
+    "reconnection": {
+      "strategy": "指数退避重连",
+      "maxAttempts": 3,
+      "timeout": 5000
+    },
+    "stateManagement": {
+      "connecting": "连接中状态",
+      "connected": "已连接状态",
+      "disconnected": "断开连接状态",
+      "error": "连接错误状态"
+    }
+  },
+  "testing": {
+    "frameworks": {
+      "unit": "Vitest",
+      "e2e": "Cypress或Playwright",
+      "component": "Vue Test Utils"
+    },
+    "unitTest": {
+      "coverage": "60%以上",
+      "testFiles": "*.spec.ts, *.test.ts"
+    },
+    "componentTest": {
+      "mounting": "使用mount或shallowMount",
+      "interaction": "使用trigger模拟用户操作",
+      "assertion": "使用find, exists, text等断言"
+    },
+    "mocking": {
+      "axios": "使用msw或axios-mock-adapter",
+      "router": "使用createMockRouter",
+      "pinia": "使用setActivePinia创建测试store"
+    }
+  },
+  "buildDeploy": {
+    "vite": {
+      "config": "vite.config.ts",
+      "plugins": ["@vitejs/plugin-vue", "@vitejs/plugin-vue-jsx"],
+      "resolve": { "alias": { "@": "/src" } }
+    },
+    "environment": {
+      "VITE_API_BASE_URL": "API基础URL",
+      "VITE_APP_TITLE": "应用标题"
+    },
+    "build": {
+      "command": "vue-tsc && vite build",
+      "output": "dist/目录",
+      "compression": "gzip压缩"
+    },
+    "preview": {
+      "command": "vite preview",
+      "port": 4173
+    }
+  },
+  "commonPatterns": {
+    "responseHandling": {
+      "success": "code === 200",
+      "data": "response.data",
+      "error": "message || '请求失败'"
+    },
+    "pagination": {
+      "request": "?pageNum=1&pageSize=10",
+      "response": "{ records: [], total: 100, pageNum: 1, pageSize: 10 }"
+    },
+    "errorHandling": {
+      "tryCatch": "异步操作使用try-catch",
+      "finally": "清理loading状态"
+    },
+    "loadingState": {
+      "setup": "const loading = ref(false)",
+      "update": "loading.value = true/false",
+      "template": ":loading=\"loading\""
+    }
+  },
+  "developmentWorkflow": {
+    "newPage": {
+      "steps": [
+        "1. 在views/下创建页面目录",
+        "2. 创建index.vue主组件",
+        "3. 在components/创建子组件",
+        "4. 在api/创建接口",
+        "5. 在types/添加类型",
+        "6. 在router/添加路由",
+        "7. 测试页面功能"
+      ]
+    },
+    "newComponent": {
+      "steps": [
+        "1. 确定组件职责（单一职责）",
+        "2. 设计Props/Emits接口",
+        "3. 编写模板和样式",
+        "4. 实现逻辑",
+        "5. 编写单元测试",
+        "6. 添加文档注释"
+      ]
+    },
+    "newFeature": {
+      "steps": [
+        "1. 创建功能分支",
+        "2. 开发功能",
+        "3. 编写测试",
+        "4. 提交代码",
+        "5. 创建PR",
+        "6. 代码审查",
+        "7. 合并到主分支"
+      ]
+    }
+  },
+  "internationalization": {
+    "framework": {
+      "name": "vue-i18n",
+      "version": "v9+",
+      "docs": "https://vue-i18n.intlify.dev/"
+    },
+    "configuration": {
+      "locale": "zh-CN",
+      "fallbackLocale": "zh-CN",
+      "messages": {
+        "zh-CN": {},
+        "en": {}
+      }
+    },
+    "dateTimeFormat": {
+      "dateFormat": "yyyy-MM-dd",
+      "timeFormat": "HH:mm:ss",
+      "datetimeFormat": "yyyy-MM-dd HH:mm:ss"
+    },
+    "numberFormat": {
+      "currency": {
+        "style": "currency",
+        "currency": "CNY"
+      },
+      "decimal": {
+        "minimumFractionDigits": 2,
+        "maximumFractionDigits": 2
+      },
+      "percent": {
+        "style": "percent",
+        "useGrouping": false
+      }
+    },
+    "usage": {
+      "basic": "$t('key')",
+      "withParams": "$t('key', { name: value })",
+      "number": "$n(number, 'currency')",
+      "datetime": "$d(date, 'yyyy-MM-dd')"
+    },
+    "messageFile": {
+      "structure": {
+        "common": "通用消息",
+        "auth": "认证相关",
+        "user": "用户相关",
+        "kb": "知识库相关",
+        "doc": "文档相关",
+        "chat": "对话相关",
+        "search": "搜索相关",
+        "system": "系统相关"
+      },
+      "naming": "zh-CN.ts, en.ts"
+    }
+  },
+  "errorHandling": {
+    "globalErrorHandler": {
+      "setup": "app.config.errorHandler",
+      "features": ["捕获未处理错误", "错误日志上报", "用户友好提示"],
+      "implementation": "app.config.errorHandler = (err, vm, info) => {\n  console.error('全局错误:', err)\n  // 上报到监控系统\n  // 显示错误提示\n}"
+    },
+    "errorBoundary": {
+      "component": "ErrorBoundary.vue",
+      "props": ["fallback (降级UI)"],
+      "implementation": "<script setup>\nimport { onErrorCaptured } from 'vue'\n\nconst error = ref(null)\n\nonErrorCaptured((err) => {\n  error.value = err\n  return false\n})\n</script>\n\n<template>\n  <slot v-if=\"!error\" />\n  <div v-else class=\"error-state\">\n    <p>出错了</p>\n    <el-button @click=\"error = null\">重试</el-button>\n  </div>\n</template>"
+    },
+    "errorCodes": {
+      "format": "{MODULE}_{TYPE}_{NUMBER}",
+      "examples": ["AUTH_001(用户名或密码错误)", "DOC_404(文档不存在)", "KB_500(服务器错误)"]
+    },
+    "errorMessages": {
+      "userFriendly": "将技术错误转换为用户友好的提示",
+      "networkError": "网络连接异常，请检查网络",
+      "serverError": "服务暂时不可用，请稍后重试",
+      "authError": "登录已过期，请重新登录"
+    },
+    "errorReporting": {
+      "data": ["错误堆栈", "用户信息(脱敏)", "操作路径", "设备信息", "时间戳"],
+      "tools": ["Sentry", "自建上报系统"],
+      "sensitiveMasking": ["密码脱敏", "Token脱敏", "个人信息脱敏"]
+    }
+  },
+  "loadingStates": {
+    "globalLoading": {
+      "store": "Pinia store管理",
+      "state": ["isLoading", "loadingText", "loadingType"],
+      "actions": ["startLoading(text)", "stopLoading()"],
+      "usage": "在app.vue中使用全局Loading组件"
+    },
+    "skeletonComponents": {
+      "types": {
+        "card": "卡片骨架屏",
+        "list": "列表骨架屏",
+        "table": "表格骨架屏",
+        "form": "表单骨架屏",
+        "chart": "图表骨架屏"
+      },
+      "implementation": "使用Element Plus Skeleton组件",
+      "example": "<el-skeleton :rows=\"5\" animated />"
+    },
+    "loadingAnimations": {
+      "types": ["spinner", "dots", "bars", "circular", "ring"],
+      "guidelines": [
+        "动画时长150-300ms",
+        "避免过多CPU消耗",
+        "考虑可访问性(减少动画设置)"
+      ],
+      "usage": "<el-icon :class=\"{'is-loading': loading}\"><Loading /></el-icon>"
+    },
+    "asyncPlaceholders": {
+      "suspense": "<Suspense>\n  <template #default>\n    <AsyncComponent />\n  </template>\n  <template #fallback>\n    <Skeleton />\n  </template>\n</Suspense>",
+      "skeleton": "异步内容加载时显示骨架屏"
+    }
+  },
+  "themeCustomization": {
+    "elementPlusTheme": {
+      "tools": ["element-theme", "在线主题构建器"],
+      "variables": [
+        "--el-color-primary",
+        "--el-color-success",
+        "--el-color-warning",
+        "--el-color-danger",
+        "--el-color-info",
+        "--el-font-size-base"
+      ],
+      "scss": "import 'element-plus/theme/index.scss'"
+    },
+    "darkMode": {
+      "implementation": "CSS变量 + class切换",
+      "switchClass": "dark-mode",
+      "colors": {
+        "background": "#1A1A2E",
+        "surface": "#16213E",
+        "primary": "#1890ff",
+        "text": "#FFFFFF",
+        "textSecondary": "rgba(255,255,255,0.65)"
+      },
+      "storage": "localStorage保存主题偏好",
+      "toggle": "检测系统prefers-color-scheme"
+    },
+    "dynamicTheme": {
+      "features": ["主题预览", "主题持久化", "多主题支持"],
+      "switching": "document.documentElement.classList.toggle('dark')",
+      "variables": "CSS变量实时切换"
+    },
+    "cssVariables": {
+      "categories": {
+        "color": ["--primary-color", "--success-color", "--warning-color", "--danger-color"],
+        "font": ["--font-size-base", "--font-size-sm", "--font-size-lg"],
+        "spacing": ["--spacing-xs", "--spacing-sm", "--spacing-md", "--spacing-lg"],
+        "shadow": ["--shadow-base", "--shadow-light"],
+        "radius": ["--radius-sm", "--radius-base", "--radius-lg"]
+      },
+      "naming": "--namespace-category-property"
+    }
+  },
+  "animations": {
+    "vueTransitions": {
+      "components": ["<Transition>", "<TransitionGroup>"],
+      "classes": ["enter-active", "leave-active", "enter-from", "leave-to", "enter-to", "leave-from"],
+      "builtIn": ["fade", "slide", "zoom", "collapse"]
+    },
+    "interactionAnimations": {
+      "hover": {
+        "duration": "200ms",
+        "easing": "ease-out",
+        "properties": ["transform", "box-shadow", "background-color"]
+      },
+      "click": {
+        "duration": "150ms",
+        "easing": "ease-in",
+        "scale": "0.95"
+      },
+      "focus": {
+        "duration": "100ms",
+        "ring": "outline or box-shadow"
+      }
+    },
+    "performanceOptimization": {
+      "transformOnly": ["transform", "translate", "rotate", "scale"],
+      "opacityOnly": ["opacity"],
+      "willChange": "仅必要时使用will-change",
+      "forbidden": ["width", "height", "margin", "padding (引起重排)"]
+    },
+    "animationAccessibility": {
+      "prefersReducedMotion": "检测并尊重系统设置",
+      "durationLimit": "动画不超过500ms",
+      "alternatives": "提供静态替代方案"
+    }
+  },
+  "componentDocumentation": {
+    "usageExamples": {
+      "format": "```vue\n<!-- 基础用法 -->\n<ComponentName :prop=\"value\" @event=\"handler\" />\n```",
+      "sections": ["基础用法", "进阶用法", "注意事项"]
+    },
+    "propsDocumentation": {
+      "template": "| 名称 | 类型 | 必填 | 默认值 | 说明 |\n|------|------|------|--------|------|\n| value | String | 是 | - | 属性说明 |",
+      "fields": ["名称", "类型(Type)", "必填(Required)", "默认值(Default)", "说明(Description)"]
+    },
+    "eventsDocumentation": {
+      "template": "| 事件名 | 参数 | 说明 |\n|--------|------|------|\n| change | payload | 变化时触发 |",
+      "fields": ["事件名", "参数(Parameters)", "说明(Description)"]
+    },
+    "slotsDocumentation": {
+      "template": "| 名称 | 说明 |\n|------|------|\n| default | 默认插槽 |",
+      "fields": ["名称", "说明"]
+    },
+    "exposesDocumentation": {
+      "template": "| 名称 | 类型 | 说明 |\n|------|------|------|\n| validate | Function | 验证表单 |",
+      "fields": ["名称", "类型", "说明"]
+    },
+    "demoPages": {
+      "path": "src/components/{ComponentName}/demo.vue",
+      "features": ["交互演示", "参数调节", "代码展示", "API文档"]
+    }
+  },
+  "directoryStructure": {
+    "components": {
+      "root": "src/components/",
+      "organization": {
+        "common/": "公共组件（跨模块复用）",
+        "business/": "业务组件（特定业务）",
+        "layout/": "布局相关组件",
+        "charts/": "图表组件",
+        "icons/": "图标组件"
+      },
+      "fileNaming": "PascalCase (如: UserCard.vue)",
+      "componentFile": {
+        "main": "index.vue",
+        "props": "types.ts",
+        "demo": "demo.vue",
+        "test": "index.spec.ts"
+      }
+    },
+    "views": {
+      "root": "src/views/",
+      "organization": {
+        "moduleName/": "按功能模块分",
+        "components/": "模块内专用组件"
+      },
+      "fileNaming": "kebab-case (如: user-list.vue)",
+      "pageFile": {
+        "index": "主页面",
+        "components/": "页面子组件"
+      }
+    },
+    "utils": {
+      "root": "src/utils/",
+      "organization": {
+        "request.ts": "Axios封装",
+        "format.ts": "格式化工具（日期、数字）",
+        "validate.ts": "校验工具函数",
+        "constant.ts": "常量定义",
+        "helpers.ts": "辅助函数"
+      }
+    },
+    "types": {
+      "root": "src/types/",
+      "organization": {
+        "api.ts": "API响应和请求类型",
+        "global.ts": "全局通用类型",
+        "components.ts": "组件类型扩展",
+        "user.ts": "用户相关类型",
+        "doc.ts": "文档相关类型"
+      }
+    },
+    "composables": {
+      "root": "src/composables/",
+      "naming": "useXxx.ts",
+      "examples": ["useForm.ts", "useTable.ts", "usePermission.ts"]
+    }
+  },
+  "gitStandards": {
+    "commitConvention": {
+      "format": "<type>(<scope>): <subject>",
+      "types": {
+        "feat": "新功能（feat）",
+        "fix": "Bug修复（fix）",
+        "docs": "文档更新（docs）",
+        "style": "代码格式调整（style）",
+        "refactor": "重构（refactor）",
+        "perf": "性能优化（perf）",
+        "test": "测试相关（test）",
+        "chore": "构建/工具相关（chore）",
+        "revert": "回退提交（revert）"
+      },
+      "examples": [
+        "feat(auth): 添加用户登录功能",
+        "fix(doc): 修复文档列表分页问题",
+        "docs: 更新README文档",
+        "style: 调整代码格式"
+      ],
+      "body": "详细说明（可选）",
+      "footer": "关联issue（可选）"
+    },
+    "branchStrategy": {
+      "main": {
+        "name": "main/master",
+        "description": "主分支，生产环境代码",
+        "protection": "禁止直接推送，需PR合并"
+      },
+      "develop": {
+        "name": "develop",
+        "description": "开发分支，集成最新开发代码"
+      },
+      "feature": {
+        "pattern": "feature/*",
+        "description": "功能分支，从develop创建",
+        "examples": ["feature/user-login", "feature/doc-search"]
+      },
+      "hotfix": {
+        "pattern": "hotfix/*",
+        "description": "紧急修复分支，从main创建",
+        "merge": "合并到main和develop"
+      },
+      "release": {
+        "pattern": "release/*",
+        "description": "发布分支，从develop创建"
+      }
+    },
+    "codeReview": {
+      "pr": {
+        "title": "清晰描述改动内容",
+        "description": "详细说明改动原因和方式",
+        "checklist": [
+          "代码符合项目规范",
+          "TypeScript类型正确",
+          "已添加必要的注释",
+          "无未使用的代码",
+          "性能影响评估",
+          "安全风险检查",
+          "已添加测试或更新测试"
+        ],
+        "reviewers": "至少1-2人review"
+      },
+      "automation": {
+        "ci": "CI检查通过（lint、test、build）",
+        "lint": "ESLint检查通过",
+        "test": "单元测试通过"
+      }
+    },
+    "gitignore": {
+      "node_modules": "依赖目录",
+      "dist": "构建输出",
+      "*.log": "日志文件",
+      ".env": "环境变量文件",
+      ".idea/.vscode": "IDE配置"
+    }
+  },
+  "officialDocs": {
+    "vuejs": {
+      "url": "https://cn.vuejs.org/",
+      "description": "Vue.js官方文档"
+    },
+    "vueCompositionApi": {
+      "url": "https://cn.vuejs.org/guide/extras/composition-api-faq.html",
+      "description": "Vue Composition API指南"
+    },
+    "typescript": {
+      "url": "https://www.typescriptlang.org/",
+      "description": "TypeScript官方文档"
+    },
+    "vite": {
+      "url": "https://cn.vitejs.dev/",
+      "description": "Vite官方文档"
+    },
+    "elementPlus": {
+      "url": "https://element-plus.org/zh-CN/",
+      "description": "Element Plus官方文档"
+    },
+    "pinia": {
+      "url": "https://pinia.vuejs.org/zh/",
+      "description": "Pinia状态管理官方文档"
+    },
+    "vueRouter": {
+      "url": "https://router.vuejs.org/zh/",
+      "description": "Vue Router官方文档"
+    },
+    "axios": {
+      "url": "https://axios-http.cn/",
+      "description": "Axios中文文档"
+    },
+    "vueAi": {
+      "url": "https://skills.sh/vuejs-ai/skills/vue-development-guides",
+      "description": "Vue.js Development Guides (vue.ai skill)"
+    },
+    "uiUxProMax": {
+      "url": "https://skills.sh/nextlevelbuilder/ui-ux-pro-max-skill/ui-ux-pro-max",
+      "description": "UI/UX Pro Max Design Intelligence"
+    }
+  }
+}

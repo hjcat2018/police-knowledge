@@ -1,0 +1,393 @@
+<template>
+  <el-container class="layout-container">
+    <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
+      <div class="logo">
+        <svg viewBox="0 0 32 32" width="32" height="32">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#1890ff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#096dd9;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="4" fill="url(#grad)"/>
+          <path d="M8 10h16v2H8zm0 5h12v2H8zm0 5h14v2H8z" fill="#fff"/>
+          <circle cx="24" cy="22" r="4" fill="#52c41a"/>
+        </svg>
+        <span v-show="!isCollapse">知识库系统</span>
+      </div>
+      
+      <el-menu
+        :default-active="activeMenu"
+        :collapse="isCollapse"
+        :collapse-transition="false"
+        router
+        class="sidebar-menu"
+      >
+        <el-menu-item index="/dashboard">
+          <el-icon><Odometer /></el-icon>
+          <template #title>仪表盘</template>
+        </el-menu-item>
+        <el-sub-menu index="/kb">
+          <template #title>
+            <el-icon><Collection /></el-icon>
+            <span>知识库管理</span>
+          </template>
+          <el-menu-item index="/kb/list">知识库列表</el-menu-item>
+          <el-menu-item index="/kb/docs">文档管理</el-menu-item>
+        </el-sub-menu>
+        <el-menu-item index="/search">
+          <el-icon><Search /></el-icon>
+          <template #title>智能搜索</template>
+        </el-menu-item>
+        <el-sub-menu index="chat">
+          <template #title>
+            <el-icon><ChatDotRound /></el-icon>
+            <span>智能问答</span>
+          </template>
+          <el-menu-item index="/chat/professional">
+            <el-icon><Reading /></el-icon>
+            <template #title>专业问答</template>
+          </el-menu-item>
+          <el-menu-item index="/chat/normal">
+            <el-icon><ChatLineRound /></el-icon>
+            <template #title>普通问答</template>
+          </el-menu-item>
+        </el-sub-menu>
+        <el-menu-item index="/vector/stats">
+          <el-icon><DataAnalysis /></el-icon>
+          <template #title>向量统计</template>
+        </el-menu-item>
+        <el-sub-menu index="/system">
+          <template #title>
+            <el-icon><Setting /></el-icon>
+            <span>系统管理</span>
+          </template>
+          <el-menu-item index="/system/user">
+            <el-icon><User /></el-icon>
+            <template #title>用户管理</template>
+          </el-menu-item>
+          <el-menu-item index="/system/dict">
+            <el-icon><List /></el-icon>
+            <template #title>字典管理</template>
+          </el-menu-item>
+          <el-menu-item index="/system/mcp">
+            <el-icon><Connection /></el-icon>
+            <template #title>MCP服务管理</template>
+          </el-menu-item>
+          <el-menu-item index="/system/prompt-template">
+            <el-icon><DocumentCopy /></el-icon>
+            <template #title>提示词模板</template>
+          </el-menu-item>
+        </el-sub-menu>
+      </el-menu>
+    </el-aside>
+    
+    <el-container>
+      <el-header class="header">
+        <div class="header-left">
+          <el-button
+            class="collapse-btn"
+            circle
+            size="default"
+            @click="isCollapse = !isCollapse"
+            :aria-label="isCollapse ? '展开侧边栏' : '收起侧边栏'"
+          >
+            <el-icon v-if="!isCollapse"><Fold /></el-icon>
+            <el-icon v-else><Expand /></el-icon>
+          </el-button>
+          <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>{{ currentRoute.meta?.title }}</el-breadcrumb-item>
+          </el-breadcrumb>
+        </div>
+        
+        <div class="header-right">
+          <ThemeToggle />
+          <el-dropdown trigger="click" @command="handleCommand">
+            <div class="user-info">
+              <el-avatar :size="32" :src="userStore.userInfo?.avatar">
+                <el-icon><User /></el-icon>
+              </el-avatar>
+              <span class="username">{{ userStore.userName }}</span>
+              <el-icon><ArrowDown /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>个人信息
+                </el-dropdown-item>
+                <el-dropdown-item command="password">
+                  <el-icon><Lock /></el-icon>修改密码
+                </el-dropdown-item>
+                <el-dropdown-item divided command="logout">
+                  <el-icon><SwitchButton /></el-icon>退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </el-header>
+      
+      <el-main class="main-content">
+        <router-view v-slot="{ Component }">
+          <transition name="fade" mode="out-in">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </transition>
+        </router-view>
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useUserStore } from '@/store/modules/user'
+import { ElMessageBox } from 'element-plus'
+import {
+  Odometer, Collection, Search, DataAnalysis,
+  Setting, Fold, Expand, User, ArrowDown, Lock, SwitchButton, ChatDotRound, Reading, ChatLineRound, Connection, List, DocumentCopy
+} from '@element-plus/icons-vue'
+import ThemeToggle from '@/components/common/ThemeToggle.vue'
+
+const route = useRoute()
+const userStore = useUserStore()
+
+const isCollapse = ref(false)
+const activeMenu = computed(() => route.path)
+const currentRoute = computed(() => route)
+
+const handleCommand = async (command: string) => {
+  switch (command) {
+    case 'profile':
+      break
+    case 'password':
+      break
+    case 'logout':
+      try {
+        await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        userStore.logoutAction()
+      } catch {}
+      break
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.layout-container {
+  height: 100vh;
+}
+
+.sidebar {
+  background: #1e293b;
+  transition: width 0.3s;
+  
+  .logo {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    overflow: hidden;
+  }
+  
+  .sidebar-menu {
+    border-right: none;
+    background: transparent;
+    padding: 8px 0;
+  }
+}
+
+.sidebar-menu {
+  .el-menu-item,
+  .el-sub-menu__title {
+    color: #94a3b8 !important;
+    border-radius: 8px;
+    margin: 2px 8px;
+    height: 44px;
+    line-height: 44px;
+    transition: all 0.25s;
+  }
+
+  .el-menu-item:hover,
+  .el-sub-menu__title:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff !important;
+  }
+
+  .el-menu-item.is-active {
+    background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+    color: #fff !important;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.35);
+  }
+
+  .el-menu-item.is-active > .el-icon {
+    color: #fff !important;
+  }
+
+  .el-menu-item.is-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: #fff;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .el-sub-menu > .el-sub-menu__title {
+    display: flex;
+    align-items: center;
+    padding-right: 12px;
+  }
+
+  .el-sub-menu > .el-sub-menu__title > .el-icon {
+    color: #94a3b8 !important;
+    font-size: 18px;
+    margin-right: 8px;
+  }
+
+  :deep(.el-sub-menu__icon-arrow) {
+    color: #94a3b8 !important;
+    font-size: 12px;
+  }
+
+  .el-sub-menu > .el-sub-menu__title > span {
+    color: #94a3b8 !important;
+  }
+
+  .el-sub-menu.is-opened > .el-sub-menu__title > .el-icon {
+    color: #1890ff !important;
+  }
+
+  :deep(.el-sub-menu.is-opened .el-sub-menu__icon-arrow) {
+    color: #1890ff !important;
+  }
+
+  .el-sub-menu.is-opened > .el-sub-menu__title > span {
+    color: #1890ff !important;
+  }
+
+  .el-sub-menu.is-opened > .el-sub-menu__title {
+    background: rgba(24, 144, 255, 0.12);
+    color: #1890ff !important;
+  }
+
+  :global(.el-menu--inline) {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+    backdrop-filter: blur(10px);
+    border-left: 2px solid rgba(24, 144, 255, 0.3);
+    padding: 8px 0;
+  }
+
+  :global(.el-menu--inline .el-menu-item) {
+    height: 40px;
+    line-height: 40px;
+    margin: 2px 8px 2px 28px;
+    font-size: 14px;
+  }
+
+  :global(.el-menu--inline .el-menu-item:hover) {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #fff !important;
+  }
+
+  :global(.el-menu--inline .el-menu-item.is-active) {
+    background: rgba(24, 144, 255, 0.2) !important;
+    color: #40a9ff !important;
+    border-right: 3px solid #1890ff;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 20px;
+  height: 64px;
+  flex-shrink: 0;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--text-regular);
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+
+  .collapse-btn:hover {
+    color: var(--primary-color);
+    background: var(--bg-secondary);
+  }
+
+  .collapse-btn .el-icon {
+    font-size: 20px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background 0.3s;
+  }
+
+  .user-info:hover {
+    background: var(--bg-secondary);
+  }
+
+  .username {
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+}
+
+.main-content {
+  background: var(--bg-secondary);
+  padding: 0;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

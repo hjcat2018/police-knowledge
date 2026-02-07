@@ -1,0 +1,1440 @@
+<template>
+  <div class="chat-container">
+    <div class="chat-sidebar" :class="{ collapsed: sidebarCollapsed }">
+      <div class="sidebar-header">
+        <el-button type="primary" @click="createNewChat" style="width: 100%">
+          <el-icon><Plus /></el-icon>
+          新建对话
+        </el-button>
+      </div>
+      <div class="conversation-list">
+        <div
+          v-for="conv in chatStore.conversations"
+          :key="conv.id"
+          class="conversation-item"
+          :class="{ active: chatStore.currentConversationId === conv.id }"
+          @click="selectConversation(conv.id)">
+          <el-icon><ChatLineRound /></el-icon>
+          <span class="title">{{ conv.title }}</span>
+          <el-dropdown
+            trigger="click"
+            @command="(cmd: string) => handleCommand(cmd, conv.id)">
+            <el-icon class="more-icon"><MoreFilled /></el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="delete">删除</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-main" :style="{ marginLeft: sidebarCollapsed ? '0' : '0' }">
+      <div class="chat-header" v-if="chatStore.currentConversationId">
+        <el-button :icon="sidebarCollapsed ? 'ArrowRight' : 'ArrowLeft'" circle size="small" @click="toggleSidebar" style="margin-right: 8px;" />
+        <el-tag type="success" size="large" effect="dark" style="display: inline-flex; align-items: center; gap: 4px;">
+          <el-icon style="display: inline-flex; margin-right: 2px;"><ChatDotRound /></el-icon>
+          普通模式
+        </el-tag>
+        <el-divider direction="vertical" />
+        <ModelSelector
+          v-model="selectedModels"
+          :maxModels="6"
+          @change="handleModelChange" />
+        <el-divider direction="vertical" />
+        <el-button-group>
+          <el-button
+            :type="showMcpPanel ? 'primary' : 'default'"
+            @click="showMcpPanel = !showMcpPanel">
+            <el-icon><Connection /></el-icon>
+            MCP服务
+          </el-button>
+          <el-button
+            :type="showFileUpload ? 'primary' : 'default'"
+            @click="showFileUpload = !showFileUpload">
+            <el-icon><Upload /></el-icon>
+            文件
+          </el-button>
+          <el-button
+            :type="showPromptTemplate ? 'primary' : 'default'"
+            @click="showPromptTemplate = !showPromptTemplate">
+            <el-icon><Document /></el-icon>
+            模板
+          </el-button>
+          <el-button
+            :type="showQuickCommands ? 'primary' : 'default'"
+            @click="showQuickCommands = !showQuickCommands">
+            <el-icon><Lightning /></el-icon>
+            快捷
+          </el-button>
+        </el-button-group>
+        <div class="connection-status" :class="connectionStatus">
+          <el-icon v-if="connectionStatus === 'connected'"
+            ><CircleCheck
+          /></el-icon>
+          <el-icon v-else-if="connectionStatus === 'disconnected'"
+            ><CircleClose
+          /></el-icon>
+          <el-icon v-else><Loading /></el-icon>
+          <span>{{ connectionStatusText }}</span>
+        </div>
+      </div>
+
+      <div class="chat-content">
+        <div class="chat-panel-left" v-if="showMcpPanel || showFileUpload || showPromptTemplate || showQuickCommands">
+          <McpPanel
+            v-if="showMcpPanel"
+            v-model="selectedMcpServices"
+            @select="handleMcpSelect" />
+          <FileUploader
+            v-if="showFileUpload"
+            :files="uploadedFiles"
+            @update:files="(files) => uploadedFiles = files"
+            @upload="handleFileUpload"
+            @remove="handleFileRemove" />
+          <PromptTemplateDialog
+            v-if="showPromptTemplate"
+            :templates="promptTemplates"
+            @select="handleTemplateSelect"
+            @manage="openTemplateManager" />
+          <QuickCommands
+            v-if="showQuickCommands"
+            :commands="quickCommands"
+            @execute="handleQuickCommand" />
+        </div>
+
+        <div class="chat-main-area">
+          <div class="chat-messages" ref="messagesContainer">
+            <div v-if="chatStore.currentMessages.length === 0" class="empty-state">
+              <div class="empty-content">
+                <Skeleton :loaded="!loading" :rows="4" :rowHeight="20">
+                  <el-icon size="64" color="#67c23a"><ChatDotRound /></el-icon>
+                  <h3>普通对话模式</h3>
+                  <p>多模型并行响应，支持文件上传和快捷指令</p>
+                  <div class="quick-tips">
+                    <el-tag type="success" size="large" effect="plain" round>支持多模型同时响应</el-tag>
+                    <el-tag type="success" size="large" effect="plain" round>PDF/Word/Excel文件</el-tag>
+                    <el-tag type="success" size="large" effect="plain" round>快捷指令一键触发</el-tag>
+                  </div>
+                </Skeleton>
+              </div>
+            </div>
+
+            <template v-for="(group, groupIndex) in messageGroups" :key="groupIndex">
+              <!-- 调试信息：可删除 -->
+              <!-- isUser={{ group.isUser }}, messagesCount={{ group.messages.length }} -->
+              <div v-if="group.isUser" class="message-user" style="margin-left: auto">
+                <div class="user-avatar">
+                  <el-avatar :size="36" icon="User" />
+                </div>
+                <div class="user-content">
+                  <div class="user-bubble">{{ group.messages[0].content }}</div>
+                  <div class="user-time">{{ formatTime(group.messages[0].createdTime) }}</div>
+                </div>
+              </div>
+              <div v-else class="models-row" :class="'models-' + group.messages.length" :style="{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'flex-start' }">
+                <div
+                  v-for="msg in group.messages"
+                  :key="msg.id"
+                  class="model-card"
+                  :class="{ 'has-error': msg.content.includes('[错误]') }"
+                  :style="{ flex: 'none', minWidth: 'unset', maxWidth: 'unset', width: getCardWidth(group.messages.length) + '%' }">
+<div class="model-header">
+                      <el-avatar :size="32" icon="ChatDotRound" :style="{ background: msg.content.includes('[错误]') ? '#f56c6c' : '#67c23a' }" />
+                      <span>{{ getModelName(msg.modelId || '') || 'AI' }}</span>
+                      <el-tag v-if="msg.tokenCount" type="info" size="small">{{ msg.tokenCount }} tokens</el-tag>
+                      <el-button size="small" circle @click="copyToClipboard(msg.content)" style="margin-left: auto; padding: 6px;">
+                        <el-icon><CopyDocument /></el-icon>
+                      </el-button>
+                    </div>
+                  <div class="model-body" v-html="formatContent(msg.content)"></div>
+                  <div class="model-time">{{ formatTime(msg.createdTime) }}</div>
+                </div>
+              </div>
+            </template>
+
+            <div v-if="loading && selectedModels.length > 0" class="models-row" :class="'models-' + selectedModels.length" :style="{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'flex-start' }">
+              <div
+                v-for="model in selectedModels"
+                :key="model"
+                class="model-card"
+                :style="{ flex: 'none', minWidth: 'unset', maxWidth: 'unset', width: getCardWidth(selectedModels.length) + '%' }">
+                <div class="model-header">
+                  <span>{{ getModelName(model) }}</span> <el-icon class="is-loading"><Loading /></el-icon>
+                  正在生成回答...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input">
+            <div v-if="uploadedFiles.length > 0" class="attached-files">
+              <el-divider content-position="left">
+                <span>已上传文件 ({{ uploadedFiles.length }})</span>
+              </el-divider>
+              <div class="file-tags">
+                <el-tag
+                  v-for="(file, idx) in uploadedFiles"
+                  :key="idx"
+                  closable
+                  @close="handleFileRemove(idx)"
+                  class="file-tag"
+                  effect="plain">
+                  <el-icon style="display: inline-flex; margin-right: 4px;"><Document /></el-icon>
+                  <span style="display: inline-flex;">{{ file.name }}</span>
+                </el-tag>
+              </div>
+            </div>
+            <el-input
+              v-model="inputMessage"
+              type="textarea"
+              placeholder="输入问题，按 Enter 发送，Shift+Enter 换行..."
+              :disabled="!chatStore.currentConversationId || loading"
+              @keydown.enter.exact.prevent="sendMessage"
+              :rows="3"
+              resize="none" />
+            <div class="input-actions">
+              <div class="left-actions">
+                <el-button size="small" circle @click="showPromptTemplate = !showPromptTemplate">
+                  <el-icon><Document /></el-icon>
+                </el-button>
+                <el-button size="small" circle @click="showQuickCommands = !showQuickCommands">
+                  <el-icon><Lightning /></el-icon>
+                </el-button>
+              </div>
+              <el-button
+                type="primary"
+                :loading="loading"
+                :disabled="!chatStore.currentConversationId"
+                @click="sendMessage">
+                <el-icon><Promotion /></el-icon>
+                发送
+              </el-button>
+            </div>
+            <div v-if="errorMessage" class="error-banner">
+              <el-icon><Warning /></el-icon>
+              <span>{{ errorMessage }}</span>
+              <el-button
+                size="small"
+                text
+                @click="retryLastMessage"
+                v-if="canRetry">
+                重试
+              </el-button>
+              <el-button size="small" text @click="clearError">
+                <el-icon><Close /></el-icon>
+              </el-button>
+            </div>
+          </div>
+        </div>
+
+        <TemplateManager
+          v-model="showTemplateManager"
+          :templates="promptTemplates"
+          @save="handleSaveTemplate" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, onActivated, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  Plus,
+  ChatLineRound,
+  MoreFilled,
+  Promotion,
+  Document,
+  Upload,
+  Connection,
+  Lightning,
+  Loading,
+  CircleCheck,
+  CircleClose,
+  Warning,
+  Close,
+  ChatDotRound,
+  CopyDocument
+} from '@element-plus/icons-vue'
+import { getTemplates, TemplateType } from '@/api/promptTemplate'
+import { getMcpServices, type McpService } from '@/api/mcpService'
+import {
+  createConversation,
+  listConversations,
+  getMessages,
+  deleteConversation,
+  ChatMessage,
+  Conversation
+} from '@/api/conversation'
+import { useChatStore } from '@/store/modules/chat'
+import type { ChatFile } from '@/api/conversation'
+import DOMPurify from 'dompurify'
+import { renderMarkdown } from '@/utils/markdown'
+import ModelSelector from './components/ModelSelector.vue'
+import McpPanel from './components/McpPanel.vue'
+import FileUploader from './components/FileUploader.vue'
+import PromptTemplateDialog from './components/PromptTemplateDialog.vue'
+import QuickCommands from './components/QuickCommands.vue'
+import TemplateManager from './components/TemplateManager.vue'
+import Skeleton from '@/components/common/Skeleton.vue'
+
+const route = useRoute()
+const chatStore = useChatStore() as any
+
+const messagesContainer = ref<HTMLElement>()
+const loading = ref(false)
+const inputMessage = ref('')
+const selectedModels = ref<string[]>(['deepseek-chat'])
+const uploadedFiles = ref<ChatFile[]>([])
+const mcpServices = ref<Array<{ id: number; name: string; status: string; description: string }>>([])
+const selectedMcpServices = ref<number[]>([])
+const promptTemplates = ref<Array<{ id: number; name: string; content: string; description: string; type: string }>>([])
+const quickCommands = ref<Array<{ id: number; command: string; description: string; icon: string }>>([])
+
+const showMcpPanel = ref(false)
+const showFileUpload = ref(false)
+const showPromptTemplate = ref(false)
+const showQuickCommands = ref(false)
+const showTemplateManager = ref(false)
+const loadingModels = ref<string[]>([])
+const sidebarCollapsed = ref(false)
+
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+const connectionStatus = ref<'connected' | 'disconnected' | 'connecting'>(
+  'disconnected'
+)
+const lastHeartbeatTime = ref<number>(0)
+const reconnectAttempts = ref(0)
+const maxReconnectAttempts = 3
+const reconnectDelay = 2000
+const heartbeatTimeout = 35000
+let eventSource: EventSource | null = null
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+let heartbeatTimeoutTimer: ReturnType<typeof setTimeout> | null = null
+
+const errorMessage = ref('')
+const canRetry = ref(false)
+const pendingQuestion = ref('')
+let pendingFiles: ChatFile[] = []
+
+interface ModelConfig {
+  id: string
+  name: string
+  provider: string
+  description: string
+}
+
+const availableModels: ModelConfig[] = [
+  { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', provider: 'DeepSeek', description: '深度求索思考对话模型' },
+  { id: 'deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', description: '擅长多轮交互与内容生成' },
+  { id: 'claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic', description: '长上下文理解能力强' },
+  { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', provider: 'Anthropic', description: '平衡性能与成本' },
+  { id: 'ERNIE-4.5', name: '文心一言 4.5', provider: '百度', description: '中文理解能力强' },
+  { id: 'ERNIE-4', name: '文心一言 4', provider: '百度', description: '快速中文响应' },
+  { id: 'Spark', name: '讯飞星火', provider: '科大讯飞', description: '多模态交互能力' },
+  { id: 'GLM-4', name: 'GLM-4', provider: '智谱AI', description: '中英双语优化' }
+]
+
+const getModelName = (modelId: string) => {
+  const model = availableModels.find(m => m.id === modelId)
+  return model ? model.name : modelId
+}
+
+const getCardWidth = (count: number) => {
+  if (count === 1) return 95
+  if (count === 2) return 45
+  if (count >= 3) return 33
+  return 95
+}
+
+const messageGroups = computed(() => {
+  const messages = chatStore.currentMessages || []
+  const groups: Array<{ isUser: boolean; messages: any[] }> = []
+
+  if (messages.length === 0) {
+    return groups
+  }
+
+  let currentGroup: any[] = []
+  let currentGroupIsUser = false
+
+  for (const msg of messages) {
+    const role = (msg.role || '').toLowerCase()
+
+    if (role === 'user') {
+      if (currentGroup.length > 0) {
+        groups.push({ isUser: currentGroupIsUser, messages: [...currentGroup] })
+        currentGroup = []
+      }
+      currentGroup.push(msg)
+      currentGroupIsUser = true
+    } else {
+      if (currentGroup.length === 0) {
+        currentGroup.push(msg)
+        currentGroupIsUser = false
+      } else if (currentGroupIsUser) {
+        groups.push({ isUser: true, messages: [...currentGroup] })
+        currentGroup = [msg]
+        currentGroupIsUser = false
+      } else {
+        currentGroup.push(msg)
+      }
+    }
+  }
+
+  if (currentGroup.length > 0) {
+    groups.push({ isUser: currentGroupIsUser, messages: [...currentGroup] })
+  }
+
+  return groups
+})
+
+const connectionStatusText = computed(() => {
+  switch (connectionStatus.value) {
+    case 'connected':
+      return 'AI工作中'
+    case 'disconnected':
+      return '就绪'
+    case 'connecting':
+      return '连接中...'
+    default:
+      return '就绪'
+  }
+})
+
+const loadConversations = async () => {
+  const loadMode = 'normal'
+  chatStore.setCurrentLoadMode(loadMode)
+  
+  try {
+    const res = (await listConversations({ page: 1, size: 100, mode: loadMode })) as any
+    let convList: Conversation[] = []
+    if (res && typeof res === 'object' && 'records' in res) {
+      convList = res.records || []
+    } else if (Array.isArray(res)) {
+      convList = res
+    }
+    if (chatStore.currentLoadMode !== loadMode) return
+    chatStore.setConversations(convList)
+
+    const lastId = chatStore.getLastVisitConversationId()
+    if (lastId && !chatStore.currentConversationId) {
+      selectConversation(lastId)
+    }
+  } catch (error) {
+    console.error('加载对话列表失败', error)
+  }
+}
+
+const loadMcpServices = async () => {
+  try {
+    const res = await getMcpServices()
+    mcpServices.value = (res as unknown as McpService[]).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      status: s.enabled === 1 ? 'active' : 'inactive',
+      description: s.description
+    }))
+  } catch (error) {
+    console.error('Failed to load MCP services:', error)
+    mcpServices.value = []
+  }
+}
+
+const loadPromptTemplates = async () => {
+  try {
+    const [systemTemplates, myTemplates] = await Promise.all([
+      getTemplates(TemplateType.SYSTEM),
+      getTemplates(TemplateType.MY)
+    ])
+    promptTemplates.value = [...(systemTemplates as any), ...(myTemplates as any)]
+  } catch (error) {
+    console.error('Failed to load prompt templates:', error)
+    promptTemplates.value = []
+  }
+}
+
+const loadQuickCommands = async () => {
+  quickCommands.value = [
+    { id: 1, command: '解释这个概念', description: '解释专业术语', icon: 'Info' },
+    { id: 2, command: '总结这段话', description: '概括总结文本', icon: 'Document' },
+    { id: 3, command: '翻译成英文', description: '翻译成英文', icon: 'Translate' },
+    { id: 4, command: '翻译成中文', description: '翻译成中文', icon: 'Translate' },
+    { id: 5, command: '查找相关法规', description: '检索法规依据', icon: 'Search' },
+    { id: 6, command: '案例分析', description: '分析案例要点', icon: 'DataAnalysis' }
+  ]
+}
+
+const createNewChat = async () => {
+  try {
+    const newConv = (await createConversation({
+      title: '新对话',
+      mode: 'normal'
+    })) as unknown as Conversation
+    chatStore.addConversation(newConv)
+    chatStore.setCurrentConversationId(newConv.id)
+    chatStore.setMessages(newConv.id, [])
+    chatStore.setChatMode('normal')
+    uploadedFiles.value = []
+    closeEventSource()
+  } catch (error) {
+    ElMessage.error('创建对话失败')
+  }
+}
+
+const selectConversation = async (id: number) => {
+  chatStore.setCurrentConversationId(id)
+  closeEventSource()
+  try {
+    const res = (await getMessages(id)) as unknown as ChatMessage[]
+    const normalizedMessages = (res || []).map(msg => ({
+      ...msg,
+      role: msg.role?.toLowerCase() as 'user' | 'assistant'
+    }))
+    chatStore.setMessages(id, normalizedMessages)
+    scrollToBottom()
+  } catch (error) {
+    console.error('加载消息失败', error)
+  }
+}
+
+const closeEventSource = () => {
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer)
+    heartbeatTimer = null
+  }
+  if (heartbeatTimeoutTimer) {
+    clearTimeout(heartbeatTimeoutTimer)
+    heartbeatTimeoutTimer = null
+  }
+  connectionStatus.value = 'disconnected'
+}
+
+const checkAllModelsDone = () => {
+  // 检查是否所有模型都完成了（包含错误的完成）
+  if (loadingModels.value.length === 0 && selectedModels.value.length > 0) {
+    loading.value = false
+    pendingQuestion.value = ''
+    pendingFiles = []
+    connectionStatus.value = 'disconnected'
+    reconnectAttempts.value = 0
+    console.log('[Chat] 所有模型响应完成（包含错误）')
+  }
+}
+
+const startHeartbeatTimer = () => {
+  heartbeatTimer = setInterval(() => {
+    const now = Date.now()
+    if (now - lastHeartbeatTime.value > heartbeatTimeout) {
+      console.warn('[Chat] 心跳超时，尝试重连')
+      handleReconnect()
+    }
+  }, 10000)
+}
+
+const handleReconnect = () => {
+  if (reconnectAttempts.value >= maxReconnectAttempts) {
+    console.error('[Chat] 重连次数已达上限')
+    showError('连接已断开，请刷新页面重试', false)
+    connectionStatus.value = 'disconnected'
+    return
+  }
+
+  reconnectAttempts.value++
+  connectionStatus.value = 'connecting'
+  console.log(
+    `[Chat] 尝试重连 (${reconnectAttempts.value}/${maxReconnectAttempts})`
+  )
+
+  setTimeout(() => {
+    if (pendingQuestion.value && chatStore.currentConversationId) {
+      sendMessageContent(pendingQuestion.value)
+    }
+  }, reconnectDelay * reconnectAttempts.value)
+}
+
+const showError = (message: string, retry: boolean) => {
+  errorMessage.value = message
+  canRetry.value = retry
+}
+
+const clearError = () => {
+  errorMessage.value = ''
+  canRetry.value = false
+}
+
+const retryLastMessage = () => {
+  if (pendingQuestion.value) {
+    clearError()
+    sendMessageContent(pendingQuestion.value)
+  }
+}
+
+const sendMessage = () => {
+  if (
+    !inputMessage.value.trim() ||
+    !chatStore.currentConversationId ||
+    loading.value
+  ) {
+    console.log('[Chat] sendMessage blocked by conditions')
+    return
+  }
+
+  if (selectedModels.value.length === 0) {
+    ElMessage.warning('请先选择至少一个模型')
+    return
+  }
+
+  const question = inputMessage.value.trim()
+  pendingFiles = [...uploadedFiles.value]
+  inputMessage.value = ''
+  sendMessageContent(question)
+}
+
+const sendMessageContent = async (question: string) => {
+  if (!chatStore.currentConversationId || loading.value) return
+
+  pendingQuestion.value = question
+  clearError()
+
+  const convId = chatStore.currentConversationId
+  const userMessage: ChatMessage = {
+    conversationId: convId,
+    role: 'user',
+    content: question,
+    files: pendingFiles
+  }
+  chatStore.addMessage(convId, userMessage)
+  scrollToBottom()
+
+  loading.value = true
+  connectionStatus.value = 'connecting'
+  reconnectAttempts.value = 0
+  loadingModels.value = selectedModels.value.length > 0 ? [...selectedModels.value] : ['默认模型']
+
+  const modelMessages: { [modelId: string]: number } = {}
+  const models = selectedModels.value.length > 0 ? selectedModels.value : ['默认模型']
+
+  for (const modelId of models) {
+    const modelName = getModelName(modelId)
+
+    const assistantMessage: ChatMessage = {
+      conversationId: convId,
+      role: 'assistant',
+      content: '',
+      modelName: modelName,
+      modelId: modelId,
+      files: pendingFiles
+    }
+    const msgId = chatStore.addMessage(convId, assistantMessage)
+    modelMessages[modelId] = msgId
+  }
+  scrollToBottom()
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
+
+  const filesData = pendingFiles
+    .filter(f => f.content)
+    .map(f => ({
+      name: f.name,
+      content: f.content
+    }))
+
+  console.log('[Chat] 发送消息，文件数量:', filesData.length)
+
+  try {
+    const url = `${baseUrl}/v1/chat/normal/${convId}`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({
+        question: question,
+        models: selectedModels.value.join(','),
+        files: filesData,
+        mcpServiceIds: selectedMcpServices.value
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    if (!response.body) {
+      throw new Error('Response body is null')
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    connectionStatus.value = 'connected'
+    lastHeartbeatTime.value = Date.now()
+    startHeartbeatTimer()
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) {
+        break
+      }
+
+      lastHeartbeatTime.value = Date.now()
+      const text = decoder.decode(value, { stream: true })
+      buffer += text
+
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
+
+      for (const line of lines) {
+        if (line.startsWith('event:')) {
+          continue
+        }
+
+        if (line.startsWith('data:')) {
+          const dataStr = line.slice(5).trim()
+          if (!dataStr) continue
+
+          try {
+            if (dataStr === '[heartbeat]') {
+              continue
+            }
+
+            const data = JSON.parse(dataStr)
+
+            if (data.modelId && data.content) {
+              const msgId = modelMessages[data.modelId]
+              if (msgId) {
+                chatStore.appendAssistantContentByMsgId(convId, msgId, data.content)
+                scheduleUpdate()
+              }
+            }
+
+            if (data.modelId && data.error) {
+              const msgId = modelMessages[data.modelId]
+              if (msgId) {
+                const errorContent = `[错误] ${data.error}`
+                chatStore.appendAssistantContentByMsgId(convId, msgId, errorContent)
+                scheduleUpdate()
+              }
+              loadingModels.value = loadingModels.value.filter(m => m !== data.modelId)
+              checkAllModelsDone()
+            }
+
+            if (data.modelId && (data.totalTokens || data.createdTime)) {
+              const msgId = modelMessages[data.modelId]
+              if (msgId) {
+                chatStore.updateMessageReferencesByMsgId(convId, msgId, data.totalTokens, data.createdTime)
+              }
+              loadingModels.value = loadingModels.value.filter(m => m !== data.modelId)
+              checkAllModelsDone()
+              scrollToBottom()
+            }
+
+            if (data.allComplete) {
+              closeEventSource()
+              loading.value = false
+              loadingModels.value = []
+              pendingQuestion.value = ''
+              pendingFiles = []
+              reconnectAttempts.value = 0
+              connectionStatus.value = 'disconnected'
+              scrollToBottom()
+            }
+          } catch (e) {
+            console.error('[Chat] 解析事件数据错误:', e)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[Chat] 发送消息错误:', error)
+    closeEventSource()
+    loading.value = false
+    loadingModels.value = []
+    connectionStatus.value = 'disconnected'
+    showError('发送消息失败，请稍后重试', true)
+  }
+}
+
+const handleCommand = async (command: string, id: number) => {
+  if (command === 'delete') {
+    try {
+      await ElMessageBox.confirm('确定要删除这个对话吗？', '提示', {
+        type: 'warning'
+      })
+      await deleteConversation(id)
+      chatStore.removeConversation(id)
+      if (chatStore.currentConversationId === id) {
+        chatStore.clearCurrentConversation()
+        closeEventSource()
+      }
+      ElMessage.success('删除成功')
+    } catch {}
+  }
+}
+
+const handleModelChange = (models: string[]) => {
+  selectedModels.value = models
+  console.log('[Chat] 模型选择变化:', models)
+}
+
+const handleMcpSelect = (service: any) => {
+  console.log('[Chat] 选择MCP服务:', service)
+  ElMessage.info(`已选择服务: ${service.name}`)
+}
+
+const handleFileUpload = (files: File[]) => {
+  files.forEach(file => {
+    const exists = uploadedFiles.value.some(f => f.name === file.name)
+    if (exists) {
+      ElMessage.warning('文件已存在')
+      return
+    }
+    const size = file.size > 1024 * 1024
+      ? `${(file.size / (1024 * 1024)).toFixed(2)} MB`
+      : `${(file.size / 1024).toFixed(2)} KB`
+    uploadedFiles.value.push({
+      name: file.name,
+      size: size,
+      type: file.type,
+      uploading: true
+    })
+  })
+}
+
+const handleFileRemove = (index: number) => {
+  uploadedFiles.value.splice(index, 1)
+}
+
+const handleTemplateSelect = (template: any) => {
+  inputMessage.value = template.content
+  showPromptTemplate.value = false
+  ElMessage.success('已应用模板')
+}
+
+const openTemplateManager = () => {
+  showTemplateManager.value = true
+  showPromptTemplate.value = false
+}
+
+const handleSaveTemplate = (template: any) => {
+  const existing = promptTemplates.value.find(t => t.id === template.id)
+  if (existing) {
+    Object.assign(existing, template)
+  } else {
+    promptTemplates.value.push({ ...template, id: Date.now() })
+  }
+  ElMessage.success('模板已保存')
+}
+
+const handleQuickCommand = (command: string) => {
+  inputMessage.value = command + ' '
+  showQuickCommands.value = false
+  nextTick(() => {
+    const textarea = document.querySelector('.chat-input .el-textarea__inner') as HTMLTextAreaElement
+    if (textarea) {
+      textarea.focus()
+    }
+  })
+}
+
+let updateCount = 0
+let pendingUpdate = false
+
+const processUpdates = () => {
+  pendingUpdate = false
+  updateCount = 0
+  scrollToBottom()
+}
+
+const scheduleUpdate = () => {
+  updateCount++
+  if (!pendingUpdate && updateCount <= 10) {
+    pendingUpdate = true
+    requestAnimationFrame(processUpdates)
+  }
+}
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      const container = messagesContainer.value
+      container.scrollTop = container.scrollHeight
+    }
+  })
+}
+
+const formatContent = (content: string) => {
+  if (!content) return ''
+  if (content.length < 100 && !content.includes('```') && !content.includes('\n')) {
+    return content.replace(/\n/g, '<br>')
+  }
+  try {
+    return renderMarkdown(content)
+  } catch (e) {
+    console.error('[Chat] Markdown解析错误:', e)
+    return DOMPurify.sanitize(content.replace(/\n/g, '<br>'))
+  }
+}
+
+const formatTime = (time: string | undefined) => {
+  if (!time) return ''
+  try {
+    const date = new Date(time)
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    return `${hours}:${minutes}`
+  } catch {
+    return ''
+  }
+}
+
+const copyToClipboard = async (content: string) => {
+  try {
+    await navigator.clipboard.writeText(content)
+    ElMessage.success('已复制到剪贴板')
+  } catch (e) {
+    ElMessage.error('复制失败，请手动选择文本复制')
+  }
+}
+
+onMounted(() => {
+  loadMcpServices()
+  loadPromptTemplates()
+  loadQuickCommands()
+})
+
+onActivated(() => {
+  chatStore.setChatMode('normal')
+  loadConversations()
+  if (route.query.id) {
+    selectConversation(Number(route.query.id))
+  }
+})
+
+onUnmounted(() => {
+  closeEventSource()
+})
+</script>
+
+<style lang="scss" scoped>
+.chat-container {
+  display: flex;
+  height: 100%;
+  background: var(--bg-secondary);
+
+  .chat-sidebar {
+    width: 280px;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &.collapsed {
+      width: 0;
+      border-right: none;
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .conversation-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .conversation-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+
+      &:hover {
+        background: var(--bg-tertiary);
+      }
+
+      &.active {
+        background: var(--primary-color);
+        color: #409eff;
+      }
+
+      .title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+        margin: 0 8px;
+      }
+
+      .more-icon {
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      &:hover .more-icon {
+        opacity: 1;
+      }
+    }
+  }
+
+  .chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+
+    .chat-header {
+      padding: 12px 24px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+      font-weight: 500;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .el-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .el-tag .el-icon {
+        display: inline-flex;
+        margin-right: 2px;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-left: auto;
+
+        &.connected {
+          color: #67c23a;
+          background: rgba(103, 194, 58, 0.1);
+        }
+
+        &.disconnected {
+          color: var(--text-secondary);
+          background: var(--bg-tertiary);
+        }
+
+        &.connecting {
+          color: #e6a23c;
+          background: rgba(230, 162, 60, 0.1);
+        }
+      }
+    }
+
+    .chat-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+
+      .chat-panel-left {
+        width: 280px;
+        background: var(--card-bg);
+        border-right: 1px solid var(--border-color);
+        overflow-y: auto;
+        padding: 16px;
+        flex-shrink: 0;
+      }
+
+      .chat-main-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        min-width: 0;
+
+        .chat-messages {
+          flex: 1;
+          overflow-y: auto;
+          padding: 24px;
+          min-height: 0;
+
+          .empty-state {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .empty-content {
+              text-align: center;
+              color: var(--text-regular);
+
+              h3 {
+                margin: 16px 0 8px;
+                font-size: 20px;
+                color: var(--text-primary);
+              }
+
+              p {
+                margin: 0 0 16px;
+                font-size: 14px;
+                color: var(--text-secondary);
+              }
+
+              .quick-tips {
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+                flex-wrap: wrap;
+              }
+            }
+          }
+
+          .message-user {
+            display: flex;
+            flex-direction: row-reverse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+
+            .user-avatar {
+              flex-shrink: 0;
+              margin-left: 12px;
+              margin-right: 0;
+            }
+
+            .user-content {
+              max-width: 70%;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-end;
+            }
+
+            .user-bubble {
+              background: #409eff;
+              color: #fff;
+              padding: 12px 16px;
+              border-radius: 12px;
+              border-bottom-left-radius: 4px;
+              line-height: 1.6;
+              font-size: 14px;
+            }
+
+            .user-time {
+              margin-top: 4px;
+              font-size: 12px;
+              color: var(--text-secondary);
+            }
+          }
+
+        }
+
+        .chat-input {
+          padding: 16px 24px;
+          background: var(--header-bg);
+          border-top: 1px solid var(--border-color);
+          flex-shrink: 0;
+
+          .attached-files {
+            margin-bottom: 12px;
+
+            .file-tags {
+              display: flex;
+              gap: 8px;
+              flex-wrap: wrap;
+              padding: 8px 0;
+
+              .file-tag {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                vertical-align: middle;
+              }
+
+              .file-tag .el-tag__content {
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+              }
+            }
+          }
+
+          .input-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+
+            .left-actions {
+              display: flex;
+              gap: 8px;
+            }
+          }
+
+          .error-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(245, 108, 108, 0.1);
+            border-radius: 4px;
+            color: #f56c6c;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.models-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+  // padding-left: 52px;
+  overflow-x: auto;
+}
+
+.models-row.models-1 {
+  grid-template-columns: 1fr;
+}
+
+.models-row.models-1 .model-card {
+  width: 95% !important;
+  max-width: 98%;
+}
+
+.models-row.models-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.models-row.models-2 .model-card {
+  width: 48% !important;
+  max-width: 48%;
+}
+
+.models-row.models-3,
+.models-row.models-4,
+.models-row.models-5,
+.models-row.models-6 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.models-row.models-3 .model-card,
+.models-row.models-4 .model-card,
+.models-row.models-5 .model-card,
+.models-row.models-6 .model-card {
+  width: 32% !important;
+  max-width: 32%;
+}
+
+.models-row .model-card {
+  flex: none;
+  min-width: unset;
+  max-width: unset;
+  width: auto;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 12px;
+}
+
+.models-row .model-card.has-error {
+  border-color: #fbc4c4;
+  background: rgba(245, 108, 108, 0.1);
+}
+
+.models-row .model-card .model-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.models-row .model-card .model-header .el-button {
+  margin-left: auto;
+  padding: 6px;
+}
+
+.models-row .model-card .model-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-regular);
+  min-height: 40px;
+  word-break: break-word;
+}
+
+.models-row .model-card .model-body :deep(ul),
+.models-row .model-card .model-body :deep(ol) {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.models-row .model-card .model-body :deep(li) {
+  margin: 6px 0;
+  line-height: 1.6;
+  color: var(--text-regular);
+  list-style-type: disc;
+}
+
+.models-row .model-card .model-body :deep(h1) {
+  font-size: 1.5em;
+  margin: 20px 0 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.models-row .model-card .model-body :deep(h2) {
+  font-size: 1.25em;
+  margin: 18px 0 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.models-row .model-card .model-body :deep(h3) {
+  font-size: 1.1em;
+  margin: 16px 0 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.models-row .model-card .model-body :deep(h4) {
+  font-size: 1em;
+  margin: 14px 0 6px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.models-row .model-card .model-body :deep(p) {
+  margin: 10px 0;
+  line-height: 1.8;
+  color: var(--text-regular);
+}
+
+.models-row .model-card .model-body :deep(blockquote) {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 4px solid var(--primary-color);
+  background: rgba(24, 144, 255, 0.1);
+  color: var(--text-regular);
+  border-radius: 0 4px 4px 0;
+}
+
+.models-row .model-card .model-body :deep(pre) {
+  margin: 12px 0;
+  padding: 14px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.models-row .model-card .model-body :deep(pre code) {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: none;
+  padding: 0;
+}
+
+.models-row .model-card .model-body :deep(code) {
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #f56c6c;
+  margin: 0 2px;
+}
+
+.models-row .model-card .model-body :deep(a) {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.models-row .model-card .model-body :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.models-row .model-card .model-body :deep(table) {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+}
+
+.models-row .model-card .model-body :deep(th),
+.models-row .model-card .model-body :deep(td) {
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.models-row .model-card .model-body :deep(th) {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.models-row .model-card .model-body :deep(tr:nth-child(even)) {
+  background: var(--bg-secondary);
+}
+
+.models-row .model-card .model-body :deep(hr) {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid var(--border-color);
+}
+
+.models-row .model-card .model-body :deep(strong) {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.models-row .model-card .model-body :deep(em) {
+  font-style: italic;
+}
+
+.models-row .model-card .model-body :deep(img) {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+  border-radius: 6px;
+}
+
+.models-row .model-card .model-time {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+</style>

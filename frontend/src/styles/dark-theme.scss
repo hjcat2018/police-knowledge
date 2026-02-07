@@ -1,0 +1,73 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-tertiary: #f0f2f5;
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+  --border-color: #dcdfe6;
+  --sidebar-bg: #1e293b;
+  --header-bg: #ffffff;
+  --card-bg: #ffffff;
+
+  --skeleton-bg: #f0f2f5;
+  --skeleton-highlight: #e8e8e8;
+  --skeleton-bg-dark: #2a2a3e;
+  --skeleton-highlight-dark: #3a3a4e;
+
+  color-scheme: light;
+}
+
+html[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-tertiary: #f0f2f5;
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+  --border-color: #dcdfe6;
+  --sidebar-bg: #1e293b;
+  --header-bg: #ffffff;
+  --card-bg: #ffffff;
+
+  color-scheme: light;
+}
+
+html[data-theme="dark"],
+html.dark {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-tertiary: #0f3460;
+  --text-primary: #ffffff;
+  --text-regular: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --border-color: #3d3d3d;
+  --sidebar-bg: #0f0f23;
+  --header-bg: #1a1a2e;
+  --card-bg: #1e1e3f;
+
+  --skeleton-bg: #2a2a3e;
+  --skeleton-highlight: #3a3a4e;
+  --skeleton-bg-dark: #2a2a3e;
+  --skeleton-highlight-dark: #3a3a4e;
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

@@ -1,0 +1,1262 @@
+{
+  "name": "PoliceKB Backend Development",
+  "description": "公安专网知识库系统后端开发规范和流程指南 - 包含Spring Boot 3.5.7、Java 17、MyBatis-Plus、Sa-Token、SeekDB向量库的完整开发规范",
+  "version": "1.0.0",
+  "author": "Development Team",
+  "lastUpdated": "2026-01-31",
+  "tags": ["spring-boot", "java", "mybatis-plus", "sa-token", "seekdb", "rag", "knowledge-base"],
+  "context": {
+    "project": {
+      "name": "Police Knowledge Base System",
+      "fullName": "公安专网知识库系统",
+      "type": "Spring Boot 3.5.7 Application",
+      "language": "Java 17",
+      "description": "面向基层民警的智能知识库管理平台，基于RAG技术和SeekDB向量数据库实现语义搜索和智能问答"
+    },
+    "technologyStack": {
+      "core": {
+        "springBoot": {
+          "version": "3.5.7",
+          "description": "后端应用框架"
+        },
+        "java": {
+          "version": "17+",
+          "description": "开发语言"
+        },
+        "mybatisPlus": {
+          "version": "3.5.5",
+          "description": "ORM框架",
+          "docs": "https://baomidou.com/"
+        },
+        "saToken": {
+          "version": "1.38.0",
+          "description": "认证授权框架",
+          "docs": "https://sa-token.dev33.cn/"
+        }
+      },
+      "database": {
+        "mysql": {
+          "version": "8.0+",
+          "description": "关系数据库"
+        },
+        "oceanbase": {
+          "version": "4.x+",
+          "description": "分布式数据库（兼容MySQL）"
+        },
+        "redis": {
+          "version": "7.x",
+          "description": "缓存和会话存储"
+        },
+        "seekdb": {
+          "version": "latest",
+          "description": "OceanBase向量数据库",
+          "docs": "https://www.oceanbase.ai/zh-CN"
+        }
+      },
+      "ai": {
+        "springAiAlibaba": {
+          "version": "1.1.0.0",
+          "description": "AI能力集成框架",
+          "docs": "https://java2ai.com/"
+        },
+        "dashscope": {
+          "description": "阿里云DashScope大语言模型和嵌入模型"
+        }
+      },
+      "documentation": {
+        "knife4j": {
+          "version": "4.4.0",
+          "description": "API接口文档生成",
+          "docs": "https://doc.xiaominfo.com/",
+          "url": "http://localhost:8080/doc.html"
+        }
+      },
+      "storage": {
+        "minio": {
+          "description": "对象存储服务"
+        }
+      },
+      "utilities": {
+        "hutool": {
+          "version": "5.8.24",
+          "description": "工具类库"
+        },
+        "lombok": {
+          "version": "1.18.32",
+          "description": "代码简化工具"
+        },
+        "ansj": {
+          "version": "5.1.6",
+          "description": "中文分词库"
+        },
+        "pdfbox": {
+          "version": "3.0.1",
+          "description": "PDF解析"
+        },
+        "poi": {
+          "version": "5.2.5",
+          "description": "Word/Excel解析"
+        }
+      }
+    },
+    "projectStructure": {
+      "root": "backend/",
+      "sourceCode": "src/main/java/com/police/kb/",
+      "testCode": "src/test/java/com/police/kb/",
+      "resources": "src/main/resources/",
+      "sql": "sql/",
+      "modules": {
+        "common": {
+          "description": "公共组件",
+          "files": ["Result.java", "ErrorCode.java", "GlobalExceptionHandler.java", "ChineseSegmenter.java"]
+        },
+        "config": {
+          "description": "配置类",
+          "files": ["MybatisPlusConfig.java", "SaTokenConfig.java", "RedisConfig.java", "SeekDBConfig.java", "JacksonConfig.java", "MinioConfig.java", "BatchProcessingConfig.java"]
+        },
+        "controller": {
+          "description": "控制器层",
+          "files": ["AuthController.java", "UserController.java", "KnowledgeBaseController.java", "DocumentController.java", "SearchController.java", "ConversationController.java", "StreamChatController.java", "SystemController.java", "VectorController.java"]
+        },
+        "dto": {
+          "description": "数据传输对象",
+          "files": ["LoginRequest.java", "LoginResponse.java", "ChangePasswordRequest.java", "UserInfoDTO.java", "KnowledgeBaseDTO.java", "DocumentDTO.java"]
+        },
+        "entity": {
+          "description": "实体类",
+          "files": ["BaseEntity.java", "User.java", "Document.java", "KnowledgeBase.java", "Category.java", "Conversation.java", "Message.java", "DocumentVector.java", "Role.java", "Permission.java", "UserRole.java", "RolePermission.java"]
+        },
+        "mapper": {
+          "description": "Mapper接口",
+          "files": ["UserMapper.java", "DocumentMapper.java", "KnowledgeBaseMapper.java", "ConversationMapper.java", "MessageMapper.java", "RoleMapper.java", "PermissionMapper.java", "CategoryMapper.java", "DocumentVectorMapper.java", "UserRoleMapper.java", "RolePermissionMapper.java"]
+        },
+        "service": {
+          "description": "服务接口",
+          "files": ["AuthService.java", "UserService.java", "KnowledgeBaseService.java", "DocumentService.java", "VectorService.java", "RagService.java", "FileParseService.java", "ConversationService.java", "DocumentChunkingService.java", "UserRoleService.java", "MinioService.java"]
+        },
+        "serviceImpl": {
+          "description": "服务实现类",
+          "files": ["AuthServiceImpl.java", "UserServiceImpl.java", "KnowledgeBaseServiceImpl.java", "DocumentServiceImpl.java", "VectorServiceImpl.java", "RagServiceImpl.java", "FileParseServiceImpl.java", "ConversationServiceImpl.java", "UserRoleServiceImpl.java"]
+        },
+        "vo": {
+          "description": "视图对象",
+          "files": ["SearchResult.java", "DocumentVO.java", "KnowledgeBaseVO.java", "ChatMessage.java", "RagAnswer.java"]
+        }
+      }
+    },
+    "databaseSchema": {
+      "tables": {
+        "user": "用户表",
+        "knowledge_base": "知识库表",
+        "document": "文档表",
+        "document_vectors": "文档向量表",
+        "conversation": "对话表",
+        "chat_message": "聊天消息表",
+        "role": "角色表",
+        "permission": "权限表",
+        "user_role": "用户角色关联表",
+        "role_permission": "角色权限关联表",
+        "category": "分类表",
+        "audit_log": "审计日志表"
+      },
+      "relationships": {
+        "user_role_many_to_many": "用户-角色多对多关系",
+        "role_permission_many_to_many": "角色-权限多对多关系",
+        "kb_document_one_to_many": "知识库-文档一对多关系",
+        "document_vector_many_to_one": "文档向量-文档多对一关系",
+        "conversation_message_one_to_many": "对话-消息一对多关系"
+      }
+    }
+  },
+  "guidelines": {
+    "codeStandards": {
+      "naming": {
+        "class": {
+          "rule": "PascalCase",
+          "examples": ["UserController", "DocumentService", "KnowledgeBaseDTO"],
+          "description": "类名、接口名使用大驼峰命名"
+        },
+        "method": {
+          "rule": "camelCase",
+          "examples": ["getUserById", "findDocuments", "saveDocument"],
+          "description": "方法名、变量名使用小驼峰命名"
+        },
+        "variable": {
+          "rule": "camelCase",
+          "examples": ["userName", "documentList", "pageSize"],
+          "description": "局部变量、成员变量使用小驼峰命名"
+        },
+        "constant": {
+          "rule": "UPPER_SNAKE_CASE",
+          "examples": ["MAX_PAGE_SIZE", "DEFAULT_BATCH_SIZE", "TOKEN_TIMEOUT"],
+          "description": "常量使用全大写下划线分隔"
+        },
+        "package": {
+          "rule": "lowercase",
+          "examples": ["com.police.kb.controller", "com.police.kb.service"],
+          "description": "包名使用全小写"
+        },
+        "databaseField": {
+          "rule": "snake_case",
+          "examples": ["user_name", "created_time", "last_login_ip"],
+          "description": "数据库字段使用下划线分隔"
+        }
+      },
+      "javaDoc": {
+        "classDocumentation": {
+          "required": true,
+          "template": "/**\n * 类功能简要描述\n * <p>详细描述（可选）</p>\n * @author 作者名\n * @date 日期时间\n */",
+          "example": "/**\n * 认证控制器\n * <p>\n * 处理用户认证相关的请求，包括登录、登出、密码修改、获取用户信息等。\n * </p>\n * @author 黄俊\n * @date 2026-01-23 12:00:00\n */"
+        },
+        "methodDocumentation": {
+          "required": true,
+          "template": "/**\n * 方法功能描述\n * @param 参数名 参数说明\n * @return 返回值说明\n * @throws 异常类型 异常说明（可选）\n */",
+          "example": "/**\n * 用户登录\n * <p>\n * 验证用户名和密码，创建登录会话，返回Token和用户信息。\n * </p>\n * @param request 登录请求参数\n * @return 登录响应结果\n * @throws RuntimeException 登录失败时抛出\n */"
+        },
+        "fieldDocumentation": {
+          "required": false,
+          "template": "/** 字段描述 */",
+          "example": "/** 状态码 */\nprivate Integer code;"
+        },
+        "annotations": {
+          "author": {
+            "description": "作者姓名",
+            "format": "中文姓名"
+          },
+          "date": {
+            "description": "创建或修改日期",
+            "format": "yyyy-MM-dd HH:mm:ss"
+          },
+          "param": {
+            "description": "方法参数说明",
+            "format": "@param 参数名 参数描述"
+          },
+          "return": {
+            "description": "返回值说明",
+            "format": "@return 返回值描述"
+          },
+          "throws": {
+            "description": "可能抛出的异常",
+            "format": "@throws 异常类型 异常说明"
+          },
+          "see": {
+            "description": "参考链接",
+            "format": "@see 链接或类名"
+          },
+          "since": {
+            "description": "起始版本",
+            "format": "@since 版本号"
+          }
+        }
+      },
+      "annotations": {
+        "class": {
+          "@RestController": "Rest风格控制器",
+          "@Service": "服务层组件",
+          "@Repository": "数据访问层组件",
+          "@Component": "通用组件",
+          "@Configuration": "配置类"
+        },
+        "method": {
+          "@GetMapping": "GET请求映射",
+          "@PostMapping": "POST请求映射",
+          "@PutMapping": "PUT请求映射",
+          "@DeleteMapping": "DELETE请求映射"
+        },
+        "parameter": {
+          "@RequestParam": "请求参数",
+          "@RequestBody": "请求体",
+          "@PathVariable": "路径变量"
+        },
+        "validation": {
+          "@Valid": "参数校验",
+          "@NotNull": "不能为空",
+          "@NotBlank": "不能为空白",
+          "@Size": "大小限制"
+        },
+        "lombok": {
+          "@Data": "生成getter/setter/toString/equals/hashCode",
+          "@Builder": "构建者模式",
+          "@AllArgsConstructor": "全参构造函数",
+          "@NoArgsConstructor": "无参构造函数",
+          "@RequiredArgsConstructor": "必需参数构造函数"
+        },
+        "mybatisPlus": {
+          "@TableName": "指定表名",
+          "@TableId": "指定主键",
+          "@TableField": "指定字段映射",
+          "@TableLogic": "逻辑删除"
+        }
+      },
+      "inlineComments": {
+        "description": "行内注释规范",
+        "rules": [
+          "复杂逻辑必须添加注释说明",
+          "注释与代码保持同一缩进",
+          "使用中文或英文，保持项目一致性",
+          "避免注释显而易见的代码"
+        ],
+        "examples": {
+          "simple": "// 计算用户年龄\nint age = calculateAge(birthDate);",
+          "complex": "// 如果用户已登录且角色为管理员，则授予全部权限\nif (StpUtil.isLogin() && userRole.equals(\"admin\")) {\n    permissions = getAllPermissions();\n}"
+        }
+      }
+    },
+    "architecturePattern": {
+      "description": "分层架构设计模式",
+      "layers": [
+        {
+          "name": "Controller",
+          "location": "com.police.kb.controller",
+          "responsibility": "HTTP请求处理、参数校验、调用Service、返回响应",
+          "rules": [
+            "不包含业务逻辑",
+            "只处理HTTP相关逻辑",
+            "使用@RequiredArgsConstructor注入依赖",
+            "返回Result<T>统一响应"
+          ],
+          "example": "@RestController\n@RequestMapping(\"/api/v1/users\")\n@RequiredArgsConstructor\npublic class UserController {\n    private final UserService userService;\n}"
+        },
+        {
+          "name": "Service",
+          "location": "com.police.kb.service",
+          "responsibility": "业务逻辑实现、事务管理、业务规则校验",
+          "rules": [
+            "处理业务逻辑",
+            "使用@Transactional管理事务",
+            "封装业务规则",
+            "调用Repository进行数据访问"
+          ],
+          "example": "public interface UserService extends IService<User> {\n    User getByUsername(String username);\n}"
+        },
+        {
+          "name": "Repository",
+          "location": "com.police.kb.repository",
+          "responsibility": "数据访问、SQL操作",
+          "rules": [
+            "继承BaseMapper或自定义Mapper",
+            "定义数据访问方法",
+            "不包含业务逻辑"
+          ],
+          "example": "@Mapper\npublic interface UserMapper extends BaseMapper<User> {\n    User selectByUsername(String username);\n}"
+        },
+        {
+          "name": "Entity",
+          "location": "com.police.kb.entity",
+          "responsibility": "数据实体、数据库映射",
+          "rules": [
+            "与数据库表对应",
+            "使用Lombok注解",
+            "继承BaseEntity获取公共字段"
+          ],
+          "example": "@Data\n@TableName(\"user\")\npublic class User extends BaseEntity {\n    private String username;\n    private String password;\n}"
+        }
+      ]
+    },
+    "apiDesign": {
+      "basePath": "/api/v1/{module}/{action}",
+      "responseFormat": {
+        "success": {
+          "code": 200,
+          "message": "操作成功",
+          "description": "成功响应"
+        },
+        "error": {
+          "code": 500,
+          "message": "错误信息",
+          "description": "错误响应"
+        },
+        "unauthorized": {
+          "code": 401,
+          "message": "未授权",
+          "description": "未登录或Token无效"
+        },
+        "forbidden": {
+          "code": 403,
+          "message": "禁止访问",
+          "description": "无权限访问"
+        },
+        "notFound": {
+          "code": 404,
+          "message": "资源不存在",
+          "description": "资源未找到"
+        }
+      },
+      "responseStructure": {
+        "fields": {
+          "code": "状态码（200成功，4xx客户端错误，5xx服务器错误）",
+          "message": "提示信息",
+          "data": "响应数据（泛型）",
+          "timestamp": "响应时间戳（毫秒）"
+        },
+        "example": {
+          "success": "{\"code\": 200, \"message\": \"操作成功\", \"data\": {...}, \"timestamp\": 1737561600000}",
+          "error": "{\"code\": 500, \"message\": \"用户名或密码错误\", \"data\": null, \"timestamp\": 1737561600000}"
+        }
+      },
+      "pagination": {
+        "request": {
+          "pageNum": "页码（从1开始）",
+          "pageSize": "每页数量（默认10）"
+        },
+        "response": {
+          "records": "数据列表",
+          "total": "总记录数",
+          "pageNum": "当前页码",
+          "pageSize": "每页数量"
+        },
+        "example": {
+          "request": "?pageNum=1&pageSize=10",
+          "response": "{\"code\": 200, \"message\": \"操作成功\", \"data\": {\"records\": [...], \"total\": 100, \"pageNum\": 1, \"pageSize\": 10}}"
+        }
+      },
+      "modules": {
+        "auth": "/api/v1/auth",
+        "user": "/api/v1/users",
+        "knowledgeBase": "/api/v1/kb",
+        "document": "/api/v1/documents",
+        "search": "/api/v1/search",
+        "vector": "/api/v1/vector",
+        "conversation": "/api/v1/conversations",
+        "chat": "/api/v1/chat",
+        "system": "/api/v1/system"
+      }
+    },
+    "apiVersioning": {
+      "description": "API版本管理规范",
+      "urlVersioning": {
+        "format": "/api/v{version}/{module}/{action}",
+        "examples": ["/api/v1/user/login", "/api/v2/user/login"],
+        "description": "URL路径中包含版本号"
+      },
+      "headerVersioning": {
+        "headerName": "X-API-Version",
+        "examples": ["X-API-Version: v1", "X-API-Version: v2"],
+        "description": "通过请求头指定版本"
+      },
+      "backwardCompatibility": {
+        "principles": [
+          "新增字段放在JSON末尾",
+          "不删除已有字段",
+          "不修改字段含义",
+          "谨慎修改字段类型"
+        ]
+      },
+      "deprecationStrategy": {
+        "annotation": "@Deprecated",
+        "noticePeriod": "至少保留2个小版本",
+        "documentation": "必须注释废弃原因和替代方案",
+        "monitoring": "监控废弃API调用量"
+      }
+    },
+    "databaseDesign": {
+      "entityMapping": {
+        "description": "Entity与数据库表映射规范",
+        "rules": [
+          "使用@TableName指定表名（默认类名转下划线）",
+          "使用@TableId指定主键字段",
+          "使用@TableField映射特殊字段",
+          "字段名使用驼峰转下划线自动映射"
+        ],
+        "example": "@Data\n@TableName(\"user\")\npublic class User extends BaseEntity {\n    @TableId(type = IdType.AUTO)\n    private Long id;\n    private String username;\n    @TableField(select = false)\n    private String password;\n}"
+      },
+      "primaryKeyStrategy": {
+        "autoIncrement": {
+          "description": "自增主键",
+          "useCase": "单机MySQL环境",
+          "example": "@TableId(type = IdType.AUTO)"
+        },
+        "snowflake": {
+          "description": "雪花算法分布式ID",
+          "useCase": "分布式环境、高并发",
+          "example": "@TableId(type = IdType.ASSIGN_ID)"
+        },
+        "currentSetting": "自增主键（MyBatis-Plus默认，AUTO策略）"
+      },
+      "baseEntity": {
+        "description": "基础实体类包含公共字段",
+        "fields": [
+          "id - 主键ID",
+          "createdTime - 创建时间",
+          "createdBy - 创建人ID",
+          "updatedTime - 更新时间",
+          "updatedBy - 修改人ID",
+          "deleted - 删除标识（逻辑删除）"
+        ],
+        "example": "@Data\npublic abstract class BaseEntity implements Serializable {\n    @TableId(type = IdType.AUTO)\n    private Long id;\n    @TableField(fill = FieldFill.INSERT)\n    private LocalDateTime createdTime;\n    @TableField(fill = FieldFill.INSERT)\n    private Long createdBy;\n    @TableField(fill = FieldFill.INSERT_UPDATE)\n    private LocalDateTime updatedTime;\n    @TableField(fill = FieldFill.INSERT_UPDATE)\n    private Long updatedBy;\n    @TableLogic\n    private Integer deleted;\n}"
+      },
+      "softDelete": {
+        "description": "逻辑删除实现方式",
+        "implementation": "使用@TableLogic注解",
+        "field": "deleted字段（TINYINT类型，0-未删除，1-已删除）",
+        "advantages": ["数据可恢复", "审计追踪", "符合数据合规要求"],
+        "example": "@TableLogic\nprivate Integer deleted;"
+      },
+      "indexDesign": {
+        "singleColumnIndex": {
+          "description": "单列索引规范",
+          "guidelines": "常用于查询条件的字段建立索引"
+        },
+        "compositeIndex": {
+          "description": "联合索引规范",
+          "principle": "最左前缀原则",
+          "order": "区分度高的字段放前面"
+        },
+        "indexNaming": {
+          "primary": "idx_{table_name}_{field_name}",
+          "unique": "uk_{table_name}_{field_name}"
+        },
+        "optimization": "避免过多索引，定期清理无用索引"
+      }
+    },
+    "errorHandling": {
+      "globalExceptionHandler": {
+        "class": "GlobalExceptionHandler.java",
+        "location": "com.police.kb.common",
+        "features": ["统一响应格式", "异常日志记录", "异常分类处理"],
+        "example": "@RestControllerAdvice\npublic class GlobalExceptionHandler {\n    @ExceptionHandler(BusinessException.class)\n    public Result<Void> handleBusinessException(BusinessException e) {\n        log.error(\"业务异常: {}\", e.getMessage());\n        return Result.error(e.getCode(), e.getMessage());\n    }\n}"
+      },
+      "customExceptions": {
+        "BusinessException": {
+          "description": "业务异常",
+          "useCase": "可预见的业务错误",
+          "examples": ["用户名不存在", "余额不足", "权限不足"]
+        },
+        "SystemException": {
+          "description": "系统异常",
+          "useCase": "系统级错误",
+          "examples": ["数据库连接失败", "空指针异常"]
+        },
+        "ValidationException": {
+          "description": "参数校验异常",
+          "useCase": "请求参数不合法"
+        }
+      },
+      "errorCodeSystem": {
+        "success": 200,
+        "clientError": {
+          "badRequest": 400,
+          "unauthorized": 401,
+          "forbidden": 403,
+          "notFound": 404
+        },
+        "serverError": 500,
+        "customCodes": {
+          "10001": "用户名或密码错误",
+          "10002": "用户已被禁用",
+          "10003": "Token已过期"
+        }
+      },
+      "exceptionClassification": {
+        "businessExceptions": {
+          "description": "业务异常",
+          "handling": "返回业务错误码和提示信息",
+          "logging": "WARN级别"
+        },
+        "systemExceptions": {
+          "description": "系统异常",
+          "handling": "返回通用错误信息",
+          "logging": "ERROR级别，包含完整堆栈"
+        }
+      },
+      "errorLogging": {
+        "level": "ERROR",
+        "content": ["异常堆栈信息", "请求参数", "用户ID", "请求路径"],
+        "sensitiveData": "密码、Token等敏感信息脱敏",
+        "example": "log.error(\"用户登录失败 - userId: {}, error: {}\", userId, e.getMessage(), e);"
+      }
+    },
+    "loggingStandards": {
+      "levelSelection": {
+        "DEBUG": {
+          "description": "调试信息",
+          "useCase": "开发环境调试",
+          "example": "变量值、方法入参出参"
+        },
+        "INFO": {
+          "description": "业务关键操作",
+          "useCase": "记录重要业务流程",
+          "examples": ["用户登录", "文档上传", "搜索请求"]
+        },
+        "WARN": {
+          "description": "潜在问题",
+          "useCase": "不影响功能但需要注意的情况",
+          "examples": ["参数为空使用默认值", "缓存未命中"]
+        },
+        "ERROR": {
+          "description": "影响功能的错误",
+          "useCase": "系统异常、业务异常",
+          "examples": ["数据库连接失败", "文件读取异常"]
+        }
+      },
+      "formatSpecification": {
+        "pattern": "[yyyy-MM-dd HH:mm:ss] [LEVEL] [ClassName] - message",
+        "example": "2026-01-31 10:00:00 INFO [UserService] - 用户登录成功: userId=123",
+        "fields": ["时间", "级别", "类名", "消息内容"]
+      },
+      "sensitiveDataMasking": {
+        "password": "脱敏为******",
+        "idCard": "脱敏为110***********1234",
+        "phone": "脱敏为138****5678",
+        "token": "脱敏为Bearer ********",
+        "implementation": "在日志输出前进行处理"
+      },
+      "fileManagement": {
+        "logFiles": {
+          "main": "police-kb.log",
+          "spring": "spring-boot.log"
+        },
+        "location": "./logs/",
+        "rotation": "按日期滚动",
+        "retention": "保留30天",
+        "size": "单个文件最大100MB"
+      },
+      "bestPractices": [
+        "使用SLF4J日志门面",
+        "使用log变量而不是字符串拼接",
+        "日志信息要有意义，方便排查问题",
+        "异常日志要包含完整堆栈信息"
+      ]
+    },
+    "securityStandards": {
+      "sqlInjection": {
+        "prevention": "使用参数化查询（MyBatis-Plus #{}语法）",
+        "forbidden": "禁止使用${}拼接SQL",
+        "safe": "selectById(id) - 参数化查询",
+        "unsafe": "selectById(\"1 or 1=1\") - SQL注入风险",
+        "note": "#{}会进行预编译，${}会直接拼接"
+      },
+      "xssPrevention": {
+        "inputValidation": "参数校验@Valid @NotBlank等",
+        "outputEncoding": "HTML转义",
+        "framework": "Spring Security XSS Filter",
+        "note": "前端也需要做XSS防护"
+      },
+      "apiRateLimiting": {
+        "implementation": "Redis + 令牌桶算法",
+        "defaultLimit": "100次/分钟",
+        "configLocation": "SeekDBConfig.java或自定义配置",
+        "response": "429 Too Many Requests"
+      },
+      "sensitiveDataEncryption": {
+        "password": "BCrypt加密存储",
+        "idCard": "AES加密存储",
+        "apiKeys": "环境变量管理",
+        "databaseFields": "敏感字段加密存储"
+      },
+      "passwordStorage": {
+        "algorithm": "BCrypt",
+        "library": "cn.hutool.crypto.digest.BCrypt",
+        "verification": "BCrypt.checkpw(rawPassword, encodedPassword)",
+        "encoding": "BCrypt.hashpw(password)",
+        "note": "BCrypt自动加盐，无需额外处理"
+      },
+      "permissionChecks": {
+        "grain": {
+          "interface": "接口级权限校验",
+          "method": "方法级权限校验",
+          "data": "数据所属权校验"
+        },
+        "annotation": "@PermissionCheck（自定义注解）",
+        "examples": [
+          "@SaCheckLogin - 登录检查",
+          "@SaCheckPermission(\"user:list\") - 权限检查"
+        ],
+        "ownerCheck": "数据创建者才能修改或删除"
+      },
+      "sensitiveEndpoints": {
+        "login": "登录接口需要限流",
+        "changePassword": "修改密码需要验证旧密码",
+        "adminEndpoints": "管理员接口需要角色校验"
+      }
+    },
+    "fileHandling": {
+      "upload": {
+        "allowedTypes": [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".md"],
+        "maxSize": "100MB",
+        "storage": "MinIO对象存储",
+        "naming": "UUID + 原始扩展名",
+        "validation": "文件类型白名单校验",
+        "service": "MinioService.java"
+      },
+      "download": {
+        "method": "流式响应@ResponseBody",
+        "contentDisposition": "attachment; filename=\"xxx\"",
+        "contentType": "根据文件类型设置"
+      },
+      "minioUsage": {
+        "class": "MinioService.java",
+        "bucket": "police-kb-files",
+        "operations": {
+          "upload": "uploadFile(file, objectName)",
+          "download": "downloadFile(objectName)",
+          "delete": "deleteFile(objectName)",
+          "list": "listObjects(prefix)"
+        },
+        "configuration": "MinioConfig.java"
+      },
+      "temporaryFileCleanup": {
+        "location": "/tmp/police-kb",
+        "retention": "24小时",
+        "implementation": "ScheduledTask定时清理",
+        "frequency": "每天凌晨2点执行"
+      },
+      "validation": {
+        "fileType": "根据文件头（Magic Number）校验",
+        "fileSize": "上传前检查文件大小",
+        "fileName": "防止路径遍历攻击"
+      }
+    },
+    "batchAsyncProcessing": {
+      "batchOptimization": {
+        "batchSize": "50-100条/批",
+        "mybatisPlusMethods": ["saveBatch()", "updateBatchById()"],
+        "configuration": "BatchProcessingConfig.java",
+        "example": "userService.saveBatch(userList, 100);"
+      },
+      "asyncExecution": {
+        "annotation": "@Async",
+        "executor": "自定义线程池",
+        "useCases": ["日志记录", "消息推送", "统计更新", "向量重建"],
+        "configuration": "@EnableAsync + ThreadPoolTaskExecutor",
+        "example": "@Async\npublic void asyncProcess(List<Document> documents) {\n    // 异步处理\n}"
+      },
+      "scheduledTasks": {
+        "annotation": "@Scheduled",
+        "cronExpression": "cron表达式配置",
+        "examples": {
+          "vectorRebuild": "0 0 2 * * ? - 每天凌晨2点重建向量",
+          "logCleanup": "0 0 3 * * ? - 每天凌晨3点清理日志",
+          "cacheRefresh": "0 0 */4 * * ? - 每4小时刷新缓存"
+        },
+        "configuration": "@EnableScheduling",
+        "note": "分布式环境下需要分布式锁"
+      },
+      "bestPractices": [
+        "批量操作使用事务保证一致性",
+        "异步任务要有超时机制",
+        "定时任务要有日志记录",
+        "失败任务要有重试机制"
+      ]
+    },
+    "testingStandards": {
+      "coverage": {
+        "unitTest": "70%以上",
+        "integrationTest": "50%以上",
+        "total": "60%以上",
+        "criticalPath": "核心业务流程100%覆盖"
+      },
+      "mocking": {
+        "framework": "Mockito",
+        "mockObjects": ["Mapper", "Service", "External APIs"],
+        "annotations": {
+          "@Mock": "标记需要Mock的依赖",
+          "@InjectMocks": "注入Mock对象到被测类",
+          "@Spy": "部分Mock，真实方法调用"
+        },
+        "example": "@ExtendWith(MockitoExtension.class)\nclass UserServiceTest {\n    @Mock\n    private UserMapper userMapper;\n    @InjectMocks\n    private UserService userService;\n}"
+      },
+      "integrationTest": {
+        "annotation": "@SpringBootTest",
+        "database": "H2内存数据库或Testcontainers",
+        "testProfile": "test",
+        "configuration": "application-test.yml",
+        "example": "@SpringBootTest\n@ActiveProfiles(\"test\")\nclass IntegrationTest { ... }"
+      },
+      "testData": {
+        "preparation": "@BeforeEach准备测试数据",
+        "cleanup": "@AfterEach清理测试数据",
+        "factory": "使用Builder模式构建测试数据",
+        "example": "User testUser = User.builder()\n    .username(\"test\")\n    .password(\"123456\")\n    .build();"
+      },
+      "apiTest": {
+        "tools": ["JUnit + MockMvc", "Postman/Newman"],
+        "assertions": {
+          "statusCode": "HTTP状态码验证",
+          "responseStructure": "响应结构验证",
+          "businessLogic": "业务逻辑验证"
+        },
+        "example": "mockMvc.perform(post(\"/api/v1/auth/login\")\n    .contentType(MediaType.APPLICATION_JSON)\n    .content(objectMapper.writeValueAsString(loginRequest)))\n    .andExpect(status().isOk())\n    .andExpect(jsonPath(\"$.code\").value(200));"
+      },
+      "testNaming": {
+        "convention": "test[MethodName]_[Scenario]_[ExpectedResult]",
+        "examples": [
+          "testLogin_Success_ShouldReturnToken",
+          "testLogin_InvalidPassword_ShouldReturnError",
+          "testGetUser_NotFound_ShouldReturn404"
+        ]
+      }
+    },
+    "dockerDeployment": {
+      "dockerfile": {
+        "baseImage": "eclipse-temurin:17-jdk-alpine",
+        "optimization": [
+          "多阶段构建减小镜像体积",
+          "非root用户运行",
+          "层缓存优化"
+        ],
+        "example": "FROM eclipse-temurin:17-jdk-alpine AS builder\nWORKDIR /app\nCOPY target/police-kb-1.0.0.jar app.jar\nEXPOSE 8080\nENTRYPOINT [\"java\", \"-jar\", \"app.jar\"]"
+      },
+      "dockerCompose": {
+        "services": ["app", "mysql", "redis", "minio"],
+        "configuration": "docker-compose.yml",
+        "example": "version: '3.8'\nservices:\n  app:\n    build: .\n    ports:\n      - \"8080:8080\"\n    depends_on:\n      - mysql\n      - redis\n    environment:\n      - SPRING_PROFILES_ACTIVE=prod"
+      },
+      "environmentManagement": {
+        "file": ".env",
+        "secrets": "敏感信息通过环境变量注入",
+        "example": "SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/police_kb\nSPRING_DATASOURCE_USERNAME=root\nSPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}"
+      },
+      "healthCheck": {
+        "endpoint": "/api/v1/system/health",
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": "3",
+        "response": "{\"status\": \"UP\"}"
+      },
+      "orchestration": {
+        "tools": ["Docker Compose(开发)", "Kubernetes(生产)"],
+        "replicas": "至少2个实例保证高可用",
+        "loadBalancer": "Nginx或云负载均衡器",
+        "rollingUpdate": "滚动更新策略"
+      },
+      "dataPersistence": {
+        "mysql": "./data/mysql:/var/lib/mysql",
+        "redis": "./data/redis:/data",
+        "minio": "./data/minio:/data"
+      }
+    },
+    "performanceOptimization": {
+      "databaseQuery": {
+        "selectOptimization": "只查询需要的字段（select个别字段而非*)",
+        "indexUsage": "确保查询使用索引，避免全表扫描",
+        "pagination": "使用limit分页，避免深分页问题",
+        "nPlusOne": "使用懒加载或批量查询解决N+1问题"
+      },
+      "cachingStrategy": {
+        "hotData": "Redis缓存热点数据",
+        "cacheKey": "prefix:{key}",
+        "ttl": "3600秒（1小时）",
+        "invalidation": "数据更新时清除相关缓存",
+        "example": "redisTemplate.opsForValue().set(\"user:\" + userId, userInfo, 3600, TimeUnit.SECONDS);"
+      },
+      "connectionPool": {
+        "hikariCP": {
+          "minimumIdle": 5,
+          "maximumPoolSize": 20,
+          "idleTimeout": 300000,
+          "maxLifetime": 1800000,
+          "connectionTimeout": 30000
+        }
+      },
+      "loadingStrategy": {
+        "lazy": {
+          "description": "延迟加载",
+          "implementation": "@TableField(exist=false) 标记非数据库字段",
+          "useCase": "关联数据按需加载"
+        },
+        "eager": {
+          "description": "急加载",
+          "implementation": "关联查询",
+          "warning": "注意N+1查询问题"
+        }
+      },
+      "batchOperations": {
+        "batchInsert": "使用saveBatch()批量插入",
+        "batchUpdate": "使用updateBatchById()批量更新",
+        "batchSize": "100条/批",
+        "example": "userService.saveBatch(userList, 100);"
+      },
+      "monitoring": {
+        "metrics": ["QPS", "响应时间", "错误率", "资源使用率"],
+        "tools": ["Spring Actuator", "Prometheus", "Grafana"],
+        "endpoints": ["/actuator/metrics", "/actuator/health"]
+      }
+    },
+    "codeExamples": {
+      "utilityClasses": {
+        "ResultUtils": {
+          "description": "统一响应构建工具",
+          "methods": ["success()", "success(T data)", "error(String message)", "error(Integer code, String message)"],
+          "example": "Result.success(user);\nResult.error(\"参数错误\");"
+        },
+        "PageUtils": {
+          "description": "分页构建工具",
+          "methods": ["buildPage(Page<T> page)"],
+          "example": "Page<User> page = new Page<>(1, 10);\nreturn PageUtils.buildPage(page);"
+        },
+        "SecurityUtils": {
+          "description": "安全相关工具",
+          "methods": ["getCurrentUserId()", "getCurrentUser()", "isLogin()"],
+          "example": "Long userId = SecurityUtils.getCurrentUserId();"
+        },
+        "DateUtils": {
+          "description": "日期格式化工具",
+          "methods": ["format(LocalDateTime)", "parse(String)"],
+          "example": "DateUtils.format(LocalDateTime.now(), \"yyyy-MM-dd HH:mm:ss\");"
+        }
+      },
+      "businessScenarios": {
+        "userAuthentication": {
+          "description": "用户登录流程示例",
+          "steps": ["参数校验", "查询用户", "验证密码", "创建会话", "返回Token"],
+          "service": "AuthService.java"
+        },
+        "permissionCheck": {
+          "description": "权限校验示例",
+          "annotation": "@SaCheckPermission(\"user:list\")",
+          "service": "UserRoleService.java"
+        },
+        "dataValidation": {
+          "description": "参数校验示例",
+          "validation": "@Valid @RequestBody LoginRequest request",
+          "handler": "GlobalExceptionHandler"
+        },
+        "paginatedQuery": {
+          "description": "分页查询示例",
+          "service": "DocumentService.java",
+          "mapper": "DocumentMapper.java"
+        }
+      },
+      "complexQueries": {
+        "lambdaQuery": {
+          "description": "条件构造器使用",
+          "example": "LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();\nwrapper.like(User::getUsername, \"test\")\n       .eq(User::getStatus, 1)\n       .orderByDesc(User::getCreatedTime);"
+        },
+        "multiTableJoin": {
+          "description": "关联查询示例",
+          "example": "userMapper.selectList(new LambdaQueryWrapper<User>()\n    .inSql(User::getId, \"SELECT user_id FROM user_role WHERE role_id = 1\"));"
+        },
+        "fulltextSearch": {
+          "description": "混合搜索示例",
+          "service": "VectorService.java",
+          "method": "hybridSearch(String keyword, Long kbId, Integer topK)"
+        }
+      },
+      "thirdPartyIntegration": {
+        "dashscope": {
+          "description": "AI模型调用示例",
+          "service": "VectorService.java",
+          "methods": ["embed(String text)", "chat(List<ChatMessage> messages)"],
+          "configuration": "spring.ai.dashscope.api-key"
+        },
+        "seekdb": {
+          "description": "向量存储示例",
+          "service": "VectorServiceImpl.java",
+          "methods": ["saveVector(DocumentVector vector)", "search(Vector vector, Integer topK)"],
+          "configuration": "SeekDBConfig.java"
+        },
+        "minio": {
+          "description": "文件存储示例",
+          "service": "MinioService.java",
+          "methods": ["upload(MultipartFile file)", "download(String objectName)"],
+          "configuration": "MinioConfig.java"
+        }
+      }
+    }
+  },
+  "developmentWorkflows": {
+    "createNewApi": {
+      "steps": [
+        "1. 创建Entity类（在entity包下，继承BaseEntity）",
+        "2. 创建Mapper接口（在repository包下，继承BaseMapper<Entity>）",
+        "3. 创建Service接口（在service包下，继承IService<Entity>）",
+        "4. 创建ServiceImpl实现类（在service/impl包下，继承ServiceImpl）",
+        "5. 创建Controller类（在controller包下，添加@RestController和@RequestMapping）",
+        "6. 添加数据库表结构（如需要，在sql目录下创建DDL）",
+        "7. 测试API接口（使用Knife4j文档或Postman）"
+      ],
+      "templates": {
+        "entity": "package com.police.kb.entity;\n\nimport com.baomidou.mybatisplus.annotation.*;\nimport lombok.Data;\nimport java.time.LocalDateTime;\n\n/**\n * 实体类描述\n * <p>详细描述</p>\n * @author 黄俊\n * @date 2026-01-31 10:00:00\n */\n@Data\n@TableName(\"your_table\")\npublic class YourEntity extends BaseEntity {\n    // 字段定义\n    private String name;\n    private Integer status;\n}",
+        "mapper": "package com.police.kb.repository;\n\nimport com.baomidou.mybatisplus.core.mapper.BaseMapper;\nimport com.police.kb.entity.YourEntity;\nimport org.apache.ibatis.annotations.Mapper;\n\n/**\n * Mapper接口描述\n * @author 黄俊\n * @date 2026-01-31 10:00:00\n */\n@Mapper\npublic interface YourEntityMapper extends BaseMapper<YourEntity> {\n}",
+        "service": "package com.police.kb.service;\n\nimport com.baomidou.mybatisplus.extension.service.IService;\nimport com.police.kb.entity.YourEntity;\n\n/**\n * 服务接口描述\n * @author 黄俊\n * @date 2026-01-31 10:00:00\n */\npublic interface YourEntityService extends IService<YourEntity> {\n    // 业务方法\n    YourEntity getByName(String name);\n}",
+        "serviceImpl": "package com.police.kb.service.impl;\n\nimport com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;\nimport com.police.kb.entity.YourEntity;\nimport com.police.kb.repository.YourEntityMapper;\nimport com.police.kb.service.YourEntityService;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.stereotype.Service;\n\n/**\n * 服务实现类描述\n * @author 黄俊\n * @date 2026-01-31 10:00:00\n */\n@Service\n@RequiredArgsConstructor\npublic class YourEntityServiceImpl extends ServiceImpl<YourEntityMapper, YourEntity> implements YourEntityService {\n    \n    @Override\n    public YourEntity getByName(String name) {\n        return this.lambdaQuery()\n            .eq(YourEntity::getName, name)\n            .one();\n    }\n}",
+        "controller": "package com.police.kb.controller;\n\nimport com.police.kb.common.Result;\nimport com.police.kb.service.YourEntityService;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.web.bind.annotation.*;\n\n/**\n * 控制器描述\n * @author 黄俊\n * @date 2026-01-31 10:00:00\n */\n@RestController\n@RequestMapping(\"/api/v1/your-entity\")\n@RequiredArgsConstructor\npublic class YourEntityController {\n    \n    private final YourEntityService yourEntityService;\n    \n    /**\n     * 获取实体详情\n     * @param id 实体ID\n     * @return 实体信息\n     */\n    @GetMapping(\"/{id}\")\n    public Result<YourEntity> getById(@PathVariable Long id) {\n        YourEntity entity = yourEntityService.getById(id);\n        return Result.success(entity);\n    }\n}"
+      }
+    },
+    "addAuthentication": {
+      "framework": "Sa-Token",
+      "methods": {
+        "checkLogin": "StpUtil.isLogin()",
+        "getUserId": "StpUtil.getLoginIdAsLong()",
+        "login": "StpUtil.login(userId, deviceType)",
+        "logout": "StpUtil.logout()",
+        "getTokenInfo": "StpUtil.getTokenInfo()"
+      },
+      "annotations": {
+        "@SaCheckLogin": "检查用户是否已登录",
+        "@SaCheckPermission(\"code\")": "检查用户是否有指定权限"
+      },
+      "example": "@GetMapping(\"/info\")\n@SaCheckLogin\npublic Result<UserInfoDTO> getCurrentUserInfo() {\n    Long userId = StpUtil.getLoginIdAsLong();\n    // 业务逻辑\n}"
+    },
+    "handleException": {
+      "globalHandler": "GlobalExceptionHandler.java",
+      "customException": "在common包创建自定义异常类",
+      "errorCodes": "在ErrorCode.java中定义错误码常量",
+      "example": "public class BusinessException extends RuntimeException {\n    private Integer code;\n    \n    public BusinessException(String message) {\n        super(message);\n        this.code = 500;\n    }\n    \n    public BusinessException(Integer code, String message) {\n        super(message);\n        this.code = code;\n    }\n}"
+    }
+  },
+  "commonPatterns": {
+    "resultResponse": {
+      "description": "统一响应结果类",
+      "class": "Result.java",
+      "usage": [
+        "Result.success() - 无数据成功响应",
+        "Result.success(T data) - 带数据成功响应",
+        "Result.success(String message, T data) - 自定义消息成功响应",
+        "Result.error() - 无数据失败响应",
+        "Result.error(String message) - 带消息失败响应",
+        "Result.error(Integer code, String message) - 自定义状态码失败响应"
+      ]
+    },
+    "pagination": {
+      "description": "分页查询",
+      "implementation": "使用MyBatis-Plus Page类",
+      "example": "Page<Document> page = new Page<>(pageNum, pageSize);\nIPage<Document> result = documentMapper.selectPage(page, wrapper);",
+      "wrapper": "LambdaQueryWrapper<Document>"
+    },
+    "transaction": {
+      "description": "事务管理",
+      "annotation": "@Transactional",
+      "properties": {
+        "propagation": "传播行为",
+        "rollbackFor": "回滚异常类型",
+        "timeout": "超时时间（秒）"
+      },
+      "example": "@Transactional(rollbackFor = Exception.class)\npublic void batchInsert(List<User> users) {\n    userService.saveBatch(users);\n}"
+    },
+    "cache": {
+      "description": "Redis缓存",
+      "configuration": "RedisConfig.java",
+      "usage": "注入StringRedisTemplate",
+      "example": "redisTemplate.opsForValue().set(key, value, timeout, unit);"
+    }
+  },
+  "configurationReference": {
+    "applicationYml": {
+      "server": {
+        "port": "服务端口（默认8080）"
+      },
+      "spring": {
+        "application": {
+          "name": "应用名称"
+        },
+        "datasource": {
+          "url": "数据库连接URL",
+          "username": "数据库用户名",
+          "password": "数据库密码",
+          "driverClassName": "驱动类名"
+        },
+        "data": {
+          "redis": {
+            "host": "Redis主机",
+            "port": "Redis端口",
+            "database": "数据库编号"
+          }
+        },
+        "servlet": {
+          "multipart": {
+            "maxFileSize": "单个文件最大大小",
+            "maxRequestSize": "请求最大大小"
+          }
+        }
+      },
+      "mybatisPlus": {
+        "mapperLocations": "Mapper XML文件位置",
+        "typeAliasesPackage": "实体类包路径",
+        "globalConfig": {
+          "dbConfig": {
+            "idType": "主键策略",
+            "logicDeleteField": "逻辑删除字段"
+          }
+        }
+      },
+      "saToken": {
+        "tokenName": "Token名称",
+        "tokenPrefix": "Token前缀",
+        "timeout": "Token有效期（秒）",
+        "jwtSecretKey": "JWT密钥"
+      },
+      "knife4j": {
+        "enable": "是否启用",
+        "setting": {
+          "language": "语言"
+        }
+      }
+    },
+    "seekdb": {
+      "host": "SeekDB服务器地址",
+      "port": "SeekDB端口",
+      "username": "用户名",
+      "password": "密码",
+      "database": "数据库名",
+      "collection": "集合名称",
+      "dimension": "向量维度",
+      "metric": "相似度计算方式"
+    },
+    "ai": {
+      "springAiDashscope": {
+        "apiKey": "DashScope API密钥",
+        "enabled": "是否启用"
+      },
+      "seekdbAi": {
+        "apiUrl": "嵌入模型API地址",
+        "apiKey": "API密钥",
+        "modelName": "嵌入模型名称"
+      }
+    },
+    "minio": {
+      "endpoint": "MinIO服务地址",
+      "accessKey": "访问密钥",
+      "secretKey": "密钥",
+      "bucket": "默认桶名称"
+    },
+    "rag": {
+      "retrieval": {
+        "topk": "检索返回数量",
+        "similarityThreshold": "相似度阈值"
+      },
+      "chunking": {
+        "strategy": "分块策略",
+        "chunkSize": "分块大小",
+        "chunkOverlap": "分块重叠"
+      }
+    }
+  },
+  "buildAndRun": {
+    "compile": {
+      "command": "mvn clean compile",
+      "description": "编译项目"
+    },
+    "run": {
+      "command": "mvn spring-boot:run",
+      "description": "启动应用"
+    },
+    "package": {
+      "command": "mvn package -DskipTests",
+      "description": "打包项目"
+    },
+    "runJar": {
+      "command": "java -jar target/police-kb-1.0.0.jar",
+      "description": "运行JAR包"
+    },
+    "test": {
+      "command": "mvn test",
+      "description": "运行测试"
+    },
+    "apiDocs": {
+      "url": "http://localhost:8080/doc.html",
+      "description": "Knife4j API文档地址"
+    },
+    "profiles": {
+      "dev": "开发环境",
+      "test": "测试环境",
+      "prod": "生产环境"
+    }
+  },
+  "gitCommitConvention": {
+    "types": [
+      {
+        "type": "feat",
+        "description": "新功能",
+        "emoji": "✨"
+      },
+      {
+        "type": "fix",
+        "description": "Bug修复",
+        "emoji": "🐛"
+      },
+      {
+        "type": "docs",
+        "description": "文档更新",
+        "emoji": "📝"
+      },
+      {
+        "type": "style",
+        "description": "代码格式调整",
+        "emoji": "💄"
+      },
+      {
+        "type": "refactor",
+        "description": "重构",
+        "emoji": "♻️"
+      },
+      {
+        "type": "test",
+        "description": "测试相关",
+        "emoji": "✅"
+      },
+      {
+        "type": "chore",
+        "description": "构建/工具相关",
+        "emoji": "🔧"
+      },
+      {
+        "type": "perf",
+        "description": "性能优化",
+        "emoji": "⚡️"
+      },
+      {
+        "type": "build",
+        "description": "构建系统",
+        "emoji": "📦"
+      },
+      {
+        "type": "ci",
+        "description": "CI配置",
+        "emoji": "👷"
+      }
+    ],
+    "format": "<type>(<scope>): <subject>",
+    "example": "feat(user): 添加用户登录功能\n\n- 实现用户名密码登录\n- 集成Sa-Token认证\n- 添加Token刷新机制",
+    "branch": {
+      "main": "主分支",
+      "develop": "开发分支",
+      "feature/*": "功能分支",
+      "hotfix/*": "紧急修复分支",
+      "release/*": "发布分支"
+    }
+  },
+  "documentation": {
+    "officialDocs": {
+      "springAiAlibaba": {
+        "url": "https://java2ai.com/",
+        "description": "Spring AI Alibaba官方文档 - AI能力集成指南"
+      },
+      "oceanbaseSeekdb": {
+        "url": "https://www.oceanbase.ai/zh-CN",
+        "description": "OceanBase SeekDB官方文档 - 向量数据库配置和使用"
+      },
+      "mybatisPlus": {
+        "url": "https://baomidou.com/",
+        "description": "MyBatis-Plus官方文档 - ORM框架使用指南"
+      },
+      "saToken": {
+        "url": "https://sa-token.dev33.cn/",
+        "description": "Sa-Token官方文档 - 认证授权框架文档"
+      },
+      "knife4j": {
+        "url": "https://doc.xiaominfo.com/",
+        "description": "Knife4j官方文档 - API接口文档生成"
+      },
+      "springBoot": {
+        "url": "https://spring.io/projects/spring-boot",
+        "description": "Spring Boot官方文档"
+      }
+    },
+    "versionCompatibility": {
+      "notes": [
+        "Spring Boot 3.x 需要配合 Sa-Token Spring Boot 3 Starter",
+        "Spring AI Alibaba 版本需与 Spring AI 版本兼容",
+        "SeekDB HNSW索引参数配置参考官方推荐值",
+        "MyBatis-Plus 3.5+ 支持lambda表达式查询"
+      ]
+    },
+    "developmentGuidelines": [
+      "开发前查阅相关技术的官方文档",
+      "了解版本兼容性和已知问题",
+      "遇到问题时优先查阅官方文档",
+      "查看API接口说明和示例代码"
+    ]
+  }
+}

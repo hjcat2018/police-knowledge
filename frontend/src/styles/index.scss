@@ -1,0 +1,123 @@
+@use './variables.scss' as *;
+@import './dark-theme.scss';
+@import './element-plus-overrides.scss';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  height: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+
+  &:hover {
+    background: #a8a8a8;
+  }
+}
+
+html.dark {
+  ::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #555;
+
+    &:hover {
+      background: #777;
+    }
+  }
+}
+
+.el-card {
+  border: none;
+  border-radius: 8px;
+}
+
+.el-button--primary {
+  --el-button-bg-color: #{$primary-color};
+  --el-button-border-color: #{$primary-color};
+  --el-button-hover-bg-color: mix(#fff, $primary-color, 10%);
+  --el-button-hover-border-color: mix(#fff, $primary-color, 10%);
+}
+
+.el-menu {
+  border-right: none !important;
+}
+
+.el-table {
+  --el-table-border-color: #{$border-color-lighter};
+  --el-table-header-bg-color: #fafafa;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.page-container {
+  padding: 20px;
+}
+
+html[data-theme="dark"],
+html.dark {
+  body {
+    background-color: var(--bg-primary);
+  }
+
+  .el-table {
+    --el-table-header-bg-color: var(--bg-tertiary);
+  }
+}
